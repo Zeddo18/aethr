@@ -43,7 +43,7 @@ export async function deleteEntry(formData: FormData) {
   const id = String(formData.get("id") ?? "");
   if (!/^[0-9a-f-]{36}$/.test(id)) return;
   const supabase = await createClient();
-  await supabase.from("meal_entries").delete().eq("id", id);
+  await supabase.from("meal_entries").delete().eq("id", id).eq("user_id", (await supabase.auth.getUser()).data.user?.id ?? "");
   revalidatePath("/nutrition");
   revalidatePath("/dashboard");
 }
