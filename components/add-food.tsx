@@ -5,7 +5,7 @@ import { Search } from "lucide-react";
 import { addEntry } from "@/app/(app)/nutrition/actions";
 import type { FormState } from "@/app/actions";
 
-type Hit = { name: string; kcal: number; protein: number; carbs: number; fat: number };
+type Hit = { name: string; kcal: number; protein: number | null; carbs: number | null; fat: number | null; source: string; basis: string };
 const r1 = (n: number) => String(Math.round(n * 10) / 10);
 const EMPTY = { name: "", amount: "", kcal: "", protein: "", carbs: "", fat: "" };
 
@@ -66,7 +66,7 @@ export function AddFood({ date }: { date: string }) {
               <Search size={20} aria-hidden />
             </button>
           </div>
-          <p aria-live="polite" className="mt-1.5 min-h-5 text-sm text-muted">{searching ? "Searching…" : note}</p>
+          <p aria-live="polite" className="mt-1.5 min-h-5 text-sm text-muted">{searching ? "Searching…" : note || "Search results: Open Food Facts. Missing nutrients are left blank for review."}</p>
           {hits.length > 0 && (
             <ul className="mt-1 max-h-60 overflow-auto rounded-xl border border-line">
               {hits.map((h, i) => (
