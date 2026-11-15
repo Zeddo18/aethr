@@ -5,16 +5,17 @@ const now = new Date("2026-11-15T12:00:00Z");
 const base = { sex: "male", birth_date: "1996-06-01", height_cm: 180, weight_kg: 80, activity_level: "moderate", goal: "maintain" };
 
 describe("calculateTargets", () => {
-  it("returns maintenance calories (Mifflin-St Jeor x activity)", () => {
+  it("returns an optional adult maintenance estimate", () => {
     expect(calculateTargets(base, now)?.calories).toBe(2759);
   });
-  it("applies a deficit when losing weight", () => {
-    expect(calculateTargets({ ...base, goal: "lose" }, now)?.calories).toBe(2207);
+  it("does not automatically prescribe deficits or surpluses", () => {
+    expect(calculateTargets({ ...base, goal: "lose" }, now)).toBeNull();
+    expect(calculateTargets({ ...base, goal: "gain" }, now)).toBeNull();
   });
-  it("sets protein from body weight", () => {
-    expect(calculateTargets(base, now)?.protein_g).toBe(144);
+  it("does not generate calorie targets for minors", () => {
+    expect(calculateTargets({ ...base, birth_date: "2010-06-01" }, now)).toBeNull();
   });
-  it("returns null when the profile is incomplete", () => {
+  it("returns null for an incomplete profile", () => {
     expect(calculateTargets({ ...base, weight_kg: null }, now)).toBeNull();
   });
 });
