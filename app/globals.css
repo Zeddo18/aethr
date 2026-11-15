@@ -1,0 +1,26 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html { -webkit-text-size-adjust: 100%; color-scheme: dark; }
+  body { @apply bg-paper text-ink font-sans antialiased; }
+  /* 16px minimum prevents iOS Safari zoom on focus */
+  input, select, button { font-size: 16px; }
+  :focus-visible { outline: 2px solid #D9B26F; outline-offset: 2px; }
+}
+
+@layer components {
+  .field { @apply w-full rounded-xl border border-line bg-surface px-4 py-3 text-ink placeholder:text-muted/70; min-height: 48px; }
+  .btn { @apply inline-flex items-center justify-center rounded-xl bg-accent px-5 font-semibold text-paper transition active:scale-[0.98] disabled:opacity-60; min-height: 48px; }
+  .btn-ghost { @apply inline-flex items-center gap-3 rounded-xl px-3 text-muted hover:bg-surface hover:text-ink; min-height: 44px; }
+  .label { @apply mb-1.5 block text-sm font-medium; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * { animation: none !important; transition: none !important; }
+  .orbit-line { stroke-dashoffset: 0 !important; }
+}
+
+@keyframes trace { to { stroke-dashoffset: 0; } }
+.orbit-line { stroke-dasharray: 1; stroke-dashoffset: 1; animation: trace 1.4s ease-out forwards; }
