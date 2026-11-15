@@ -56,7 +56,7 @@ export default async function NutritionPage({ searchParams }: { searchParams: Pr
 
       <section className="mt-6 rounded-2xl border border-line bg-surface p-5" aria-label="Daily summary">
         <p className="font-display text-4xl font-semibold">{eaten}
-          <span className="text-base font-normal text-muted">{targets ? ` of ${targets.calories} kcal` : " kcal"}</span>
+          <span className="text-base font-normal text-muted">{" kcal logged"}</span>
         </p>
         {targets ? (
           <>
