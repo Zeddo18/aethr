@@ -29,7 +29,7 @@ export default async function NutritionPage({ searchParams }: { searchParams: Pr
 
   const [{ data: profile }, { data, error }] = await Promise.all([
     supabase.from("profiles").select("sex,birth_date,height_cm,weight_kg,activity_level,goal").eq("id", user!.id).maybeSingle(),
-    supabase.from("meal_entries").select("id,meal,name,amount_g,calories,protein_g,carbs_g,fat_g").eq("eaten_on", date).order("created_at"),
+    supabase.from("meal_entries").select("id,meal,name,amount_g,calories,protein_g,carbs_g,fat_g").eq("user_id", user!.id).eq("eaten_on", date).order("created_at"),
   ]);
   const entries = (data ?? []) as Entry[];
   const targets = profile ? calculateTargets(profile) : null;
@@ -56,13 +56,13 @@ export default async function NutritionPage({ searchParams }: { searchParams: Pr
 
       <section className="mt-6 rounded-2xl border border-line bg-surface p-5" aria-label="Daily summary">
         <p className="font-display text-4xl font-semibold">{eaten}
-          <span className="text-base font-normal text-muted">{targets ? ` of ${targets.calories} kcal` : " kcal"}</span>
+          <span className="text-base font-normal text-muted">{" kcal logged"}</span>
         </p>
         {targets ? (
           <>
             <div className="mt-3"><Bar value={eaten} max={targets.calories} /></div>
             <p className="mt-2 text-sm text-muted">
-              {eaten <= targets.calories ? `${targets.calories - eaten} kcal left` : `${eaten - targets.calories} kcal over`}
+              Optional adult maintenance reference: {targets.calories} kcal (estimate only)
             </p>
             <dl className="mt-5 space-y-3">
               {([["Protein", "protein_g"], ["Carbs", "carbs_g"], ["Fat", "fat_g"]] as const).map(([label, key]) => (
@@ -75,8 +75,7 @@ export default async function NutritionPage({ searchParams }: { searchParams: Pr
           </>
         ) : (
           <p className="mt-2 text-sm text-muted">
-            Add your sex, birth date, height, weight, activity and goal in your{" "}
-            <Link href="/profile" className="text-accent underline underline-offset-4">profile</Link> to see daily targets.
+            Track meals and nutrition without a mandatory daily target.
           </p>
         )}
       </section>

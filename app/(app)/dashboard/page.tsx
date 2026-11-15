@@ -10,7 +10,7 @@ export default async function Dashboard() {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   const { data: profile } = await supabase.from("profiles").select("display_name").eq("id", user!.id).maybeSingle();
-  const { data: entries } = await supabase.from("meal_entries").select("calories").eq("eaten_on", todayStr());
+  const { data: entries } = await supabase.from("meal_entries").select("calories").eq("user_id", user!.id).eq("eaten_on", todayStr());
 
   const first = (profile?.display_name ?? "").split(" ")[0];
   const date = new Intl.DateTimeFormat("en", { weekday: "long", month: "long", day: "numeric" }).format(new Date());
