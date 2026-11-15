@@ -10,8 +10,10 @@ const r1 = (n: number) => String(Math.round(n * 10) / 10);
 const EMPTY = { name: "", amount: "", kcal: "", protein: "", carbs: "", fat: "" };
 
 const scale = (h: Hit, g: number) => ({
-  kcal: r1((h.kcal * g) / 100), protein: r1((h.protein * g) / 100),
-  carbs: r1((h.carbs * g) / 100), fat: r1((h.fat * g) / 100),
+  kcal: r1((h.kcal * g) / 100),
+  protein: h.protein === null ? "" : r1((h.protein * g) / 100),
+  carbs: h.carbs === null ? "" : r1((h.carbs * g) / 100),
+  fat: h.fat === null ? "" : r1((h.fat * g) / 100),
 });
 
 export function AddFood({ date }: { date: string }) {
