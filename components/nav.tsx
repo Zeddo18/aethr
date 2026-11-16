@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Apple, Dumbbell, Footprints, Home, UserRound, LogOut } from "lucide-react";
+import { Apple, Dumbbell, Footprints, Home, UserRound, LogOut, Sparkles } from "lucide-react";
 import { signOut } from "@/app/actions";
 import { Brand } from "@/components/brand";
 
@@ -11,7 +11,7 @@ const ITEMS = [
   { href: "/nutrition", label: "Food", icon: Apple },
   { href: "/gym", label: "Gym", icon: Dumbbell },
   { href: "/run", label: "Run", icon: Footprints },
-  { href: "/profile", label: "Profile", icon: UserRound },
+  { href: "/assistant", label: "AI", icon: Sparkles },
 ];
 
 export function Nav({ name }: { name: string }) {
@@ -32,6 +32,7 @@ export function Nav({ name }: { name: string }) {
           ))}
         </nav>
         <div className="border-t border-line pt-4">
+          <Link href="/profile" className="btn-ghost w-full"><UserRound size={20} aria-hidden /> Profile</Link>
           <p className="truncate px-3 pb-2 text-sm text-muted">{name}</p>
           <form action={signOut}>
             <button className="btn-ghost w-full"><LogOut size={20} aria-hidden /> Sign out</button>

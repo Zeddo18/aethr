@@ -6,7 +6,7 @@
   html { -webkit-text-size-adjust: 100%; color-scheme: dark; }
   body { @apply bg-paper text-ink font-sans antialiased; }
   /* 16px minimum prevents iOS Safari zoom on focus */
-  input, select, button { font-size: 16px; }
+  input, select, button, textarea { font-size: 16px; }
   :focus-visible { outline: 2px solid #D9B26F; outline-offset: 2px; }
 }
 
