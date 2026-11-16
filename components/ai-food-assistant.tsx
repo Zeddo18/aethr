@@ -15,6 +15,9 @@ const fmt = (value: number | null, grams: number) => value === null ? "" : Strin
 export function AiFoodAssistant({ date }: { date: string }) {
   const router = useRouter();
   const upload = useRef<HTMLInputElement>(null);
+  const recorder = useRef<MediaRecorder | null>(null);
+  const microphone = useRef<MediaStream | null>(null);
+  const [recording, setRecording] = useState(false);
   const [message, setMessage] = useState("");
   const [image, setImage] = useState("");
   const [photoName, setPhotoName] = useState("");
@@ -41,6 +44,47 @@ export function AiFoodAssistant({ date }: { date: string }) {
       setError("");
     };
     reader.readAsDataURL(file);
+  }
+
+  async function toggleVoice() {
+    if (recording) { recorder.current?.stop(); setRecording(false); return; }
+    if (!navigator.mediaDevices?.getUserMedia || typeof MediaRecorder === "undefined") {
+      setError("Voice recording isn't supported in this browser. Type your meal instead.");
+      return;
+    }
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      microphone.current = stream;
+      const mime = ["audio/mp4", "audio/webm"].find(type => MediaRecorder.isTypeSupported(type));
+      const rec = new MediaRecorder(stream, mime ? { mimeType: mime } : undefined);
+      recorder.current = rec;
+      const chunks: Blob[] = [];
+      rec.ondataavailable = e => { if (e.data.size) chunks.push(e.data); };
+      rec.onerror = () => { setError("Could not capture audio."); microphone.current?.getTracks().forEach(t => t.stop()); setRecording(false); };
+      rec.onstop = async () => {
+        microphone.current?.getTracks().forEach(t => t.stop());
+        setRecording(false);
+        setBusy(true);
+        try {
+          const type = rec.mimeType.includes("mp4") ? "audio/mp4" : "audio/webm";
+          const blob = new Blob(chunks, { type });
+          const body = new FormData();
+          body.append("audio", new File([blob], type === "audio/mp4" ? "meal.m4a" : "meal.webm", { type }));
+          const res = await fetch("/api/ai/transcribe", { method: "POST", body });
+          const data = await res.json();
+          if (!res.ok) throw new Error(data.error || "Transcription failed.");
+          setMessage(previous => [previous, data.text].filter(Boolean).join(" "));
+          setNotice("Review your transcription, then tap Analyze meal.");
+        } catch (e) { setError(e instanceof Error ? e.message : "Voice transcription failed."); }
+        finally { setBusy(false); }
+      };
+      rec.start();
+      setRecording(true);
+      setError("");
+    } catch {
+      microphone.current?.getTracks().forEach(t => t.stop());
+      setError("Microphone permission was denied or the recorder is unavailable.");
+    }
   }
 
   async function analyze() {
@@ -141,6 +185,9 @@ export function AiFoodAssistant({ date }: { date: string }) {
         <input ref={upload} type="file" accept="image/jpeg,image/png,image/webp" capture="environment"
           className="hidden" aria-label="Food photo" onChange={e => photo(e.target.files?.[0])} />
         <div className="flex flex-wrap gap-2">
+          <button type="button" className="btn-ghost border border-line" onClick={toggleVoice} disabled={busy}>
+            <Mic size={18} /> {recording ? "Stop voice" : "Voice input"}
+          </button>
           <button type="button" className="btn-ghost border border-line" onClick={() => upload.current?.click()}>
             <Camera size={18} /> {photoName ? "Change photo" : "Add photo"}
           </button>
