@@ -37,7 +37,8 @@ export async function POST(request: Request) {
   if (rows.some(x => x === null)) {
     return NextResponse.json({ error: "Review all portions and nutrition values before saving. Unknown nutrition must be checked manually." }, { status: 400 });
   }
-  const { error } = await supabase.from("meal_entries").insert(rows);
+  const validRows = rows.filter((row): row is NonNullable<typeof row> => row !== null);
+  const { error } = await supabase.from("meal_entries").insert(validRows);
   if (error) return NextResponse.json({ error: "Failed to save the meal." }, { status: 500 });
   return NextResponse.json({ ok: true });
 }
