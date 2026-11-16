@@ -42,7 +42,10 @@ alter table public.workout_template_exercises enable row level security;
 create policy "own template exercises read" on public.workout_template_exercises for select to authenticated
   using (exists (select 1 from public.workout_templates t where t.id = template_id and t.user_id = (select auth.uid())));
 create policy "own template exercises insert" on public.workout_template_exercises for insert to authenticated
-  with check (exists (select 1 from public.workout_templates t where t.id = template_id and t.user_id = (select auth.uid())));
+  with check (
+    exists (select 1 from public.workout_templates t where t.id = template_id and t.user_id = (select auth.uid()))
+    and exists (select 1 from public.exercises e where e.id = exercise_id and (e.user_id = (select auth.uid()) or e.user_id is null))
+  );
 create policy "own template exercises delete" on public.workout_template_exercises for delete to authenticated
   using (exists (select 1 from public.workout_templates t where t.id = template_id and t.user_id = (select auth.uid())));
 
