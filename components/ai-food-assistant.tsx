@@ -214,7 +214,7 @@ export function AiFoodAssistant({ date }: { date: string }) {
             <article key={i} className="rounded-2xl border border-line bg-surface p-4 space-y-3">
               <h3 className="font-semibold">Food {i + 1}</h3>
               {suggestions[i]?.length > 0 && (
-                <div><label className="label" htmlFor={`match-${i}`}>Verified food search</label>
+                <div><label className="label" htmlFor={`match-${i}`}>Nutrition database matches</label>
                   <select id={`match-${i}`} className="field" value={chosen[i] ?? -1}
                     onChange={e => select(i, Number(e.target.value))}>
                     <option value={-1}>Choose a matching product or enter manually</option>
