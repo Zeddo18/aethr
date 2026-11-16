@@ -13,7 +13,7 @@ const schema = {
       meal: { type: ["string", "null"], enum: ["breakfast", "lunch", "dinner", "snack", null] },
       time: { type: ["string", "null"], description: "24-hour HH:MM local time or null" },
       foods: {
-        type: "array", maxItems: 10,
+        type: "array",
         items: {
           type: "object", additionalProperties: false,
           properties: { name: { type: "string" }, grams: { type: ["number", "null"] } },
