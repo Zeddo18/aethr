@@ -94,3 +94,14 @@ export async function saveTemplate(_: GymState, form: FormData): Promise<GymStat
   refresh();
   return { message: "Template saved." };
 }
+
+export async function startFromTemplate(form: FormData) {
+  const id = form.get("id");
+  if (!workoutId(id)) return;
+  const { db, user } = await auth();
+  const { data: template } = await db.from("workout_templates")
+    .select("name").eq("id", id).eq("user_id", user.id).maybeSingle();
+  if (!template) return;
+  const { error } = await db.from("workout_sessions").insert({ user_id: user.id, title: template.name });
+  if (!error) refresh();
+}
