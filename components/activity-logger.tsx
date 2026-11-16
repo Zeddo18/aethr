@@ -24,7 +24,7 @@ async function persist(body: unknown) {
 export function ActivityLogger() {
   const router = useRouter();
   const [kind, setKind] = useState<ActivityType>("run");
-  const [start, setStart] = useState(() => new Date().toISOString().slice(0,16));
+  const [start, setStart] = useState(() => {\n    const now = new Date();\n    return new Date(now.getTime() - now.getTimezoneOffset()*60000).toISOString().slice(0,16);\n  });
   const [duration, setDuration] = useState("");
   const [distance, setDistance] = useState("");
   const [notes, setNotes] = useState("");
