@@ -13,5 +13,5 @@ export function workoutInteger(value: unknown, max = 100): number | null {
 export function workoutWeight(value: unknown): number | null {
   if (!(typeof value === "number" || typeof value === "string" && value.trim() !== "")) return null;
   const n = Number(value);
-  return Number.isFinite(n) && n >= 0 && n <= 10000 && Math.round(n * 100) === n * 100 ? n : null;
+  return Number.isFinite(n) && n >= 0 && n <= 10000 && Math.abs(Math.round(n * 100) - n * 100) < 1e-7 ? n : null;
 }
