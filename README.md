@@ -1,3 +1,4 @@
+
 # AETHR — Phase 1
 
 1. `npm install`
@@ -28,3 +29,19 @@
 5. GPS routes can be deleted with their activity. The full map/route viewer, background GPS, offline queues and third-party integrations remain future work.
 
 Run `npm test && npx tsc --noEmit && npm run build`. Test permissions, route privacy and database migrations manually before production use. Never publish a user's exact GPS route.
+
+## Phase 6 — Advanced Nutrition (draft PR)
+
+Apply `supabase/phase6.sql` after earlier `schema.sql` and `phase2.sql` in the Supabase SQL editor. Open **Food → Saved foods, recipes & barcode lookup** (`/nutrition/library`).
+
+- Search packaged products by manually typing an 8–14 digit barcode. A camera scanner is optional and depends on BarcodeDetector support, camera permission, and HTTPS; manual entry remains available.
+- Check name, brand, and nutrition data against the actual packaging. Open Food Facts data is community-maintained and may be inaccurate or incomplete. Missing macros are not silently replaced with zero.
+- Save your own foods with complete per-100g calorie/protein/carb/fat figures from a trusted label or source.
+- Assemble up to 20 saved-food ingredients into a reusable recipe by entering exact gram weights. Recipe totals are computed from saved ingredient values, not estimated by AI.
+- Confirm the portion in grams and select a meal to log a saved food or recipe to your existing diary.
+- Common Filipino ingredient search words (kanin, itlog, tokwa, patis, bangus and others) now map to Open Food Facts searches. This is **not** an independently verified Filipino nutrition database.
+- Saved records are private under Supabase RLS. Deleting a saved item does not retroactively change diary records.
+
+**Caveats:** Recipe portions use summed ingredient weights; cooking water loss/gain can alter actual cooked weight and must be verified. No offline barcode cache or dedicated nutrition provenance database is included. A camera barcode scan is not guaranteed on iPhone Safari.
+
+Run `npm ci && npm test && npx tsc --noEmit && npm run build`, then test the database schema and RLS manually before merging.
