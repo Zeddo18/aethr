@@ -18,3 +18,13 @@
 **Current limits:** The assistant provides meal parsing, photo ingredient identification, voice transcription and confirmation-based food logging. It does not yet offer general conversational history or persistent AI chat. Food label matches are from community-maintained Open Food Facts; confirm brand and raw/cooked preparation. Meal time is displayed for review but the current database only stores the date. No AI request automatically writes meal data.
 
 **Security:** Keep OpenAI keys server-side. Enable cost limits/rate limiting and run authenticated end-to-end tests before public production use.
+
+## Phase 9 — App experience (draft)
+
+Install AETHR through Safari's **Share → Add to Home Screen**, or the browser's install action where available. AETHR includes a Next.js web app manifest and uses existing app icons. It is **online-only**: offline caching and background sync are not implemented.
+
+Visit `/settings` from the Today dashboard or desktop sidebar. All reminders are **off by default**. Optionally choose a daily in-app reminder time (Philippine time) and a gentle check-in or rest message. The message appears only while the Settings page is open in a visible tab, at most once per tab-session and local day. **There are no push notifications, background timers, email messages or scheduled deliveries.**
+
+Run `supabase/phase9.sql` after the core schema to store private reminder preferences behind authenticated RLS policies. You can turn reminders off whenever you wish.
+
+Run `npm ci && npm test && npx tsc --noEmit && npm run build`. Test user authorization, settings persistence, manifest installation and iPhone Safari. Do not merge without manual validation.
