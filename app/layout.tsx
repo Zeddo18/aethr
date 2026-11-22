@@ -8,6 +8,7 @@ const body = DM_Sans({ subsets: ["latin"], variable: "--font-body" });
 export const metadata: Metadata = {
   title: "AETHR",
   description: "Nutrition, gym and running in one place.",
+  applicationName: "AETHR",
   appleWebApp: { capable: true, title: "AETHR", statusBarStyle: "black" },
 };
 
