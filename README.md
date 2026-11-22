@@ -85,3 +85,9 @@ Visit `/settings` from the Today dashboard or desktop sidebar. All reminders are
 Run `supabase/phase9.sql` after the core schema to store private reminder preferences behind authenticated RLS policies. You can turn reminders off whenever you wish.
 
 Run `npm ci && npm test && npx tsc --noEmit && npm run build`. Test user authorization, settings persistence, manifest installation and iPhone Safari. Do not merge without manual validation.
+
+## Phase 10 — Launch readiness
+
+This review branch introduces baseline response security headers, updates GitHub CI to Node.js 22, and adds informational production dependency auditing. See [RELEASE_CHECKLIST.md](RELEASE_CHECKLIST.md) for detailed release blockers and staging verification steps.
+
+**Not ready for production yet.** Phases 4–9 are merged into main; database migrations and end-to-end testing are still required before a public launch. Supabase RLS, AI per-user rate limits and billing controls, user data export/deletion, real iPhone testing, security advisories and privacy disclosures require completion. Do not infer production readiness from a green CI build alone.
