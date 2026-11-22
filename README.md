@@ -63,3 +63,15 @@ Sign in and open `/progress` or use the **Your 28-day progress** link from the T
 **Data limitations:** Each category currently reads at most 1,000 rows for the 28-day period, and the page displays a partial-data notice if that boundary is reached. For larger datasets, implement server-side aggregation and pagination. Workout history is based on session start dates; exercise-level performance analytics are a separate future feature.
 
 Run `npm ci && npm test && npx tsc --noEmit && npm run build`. Real Supabase, RLS, and iPhone Safari verification remain necessary before release.
+
+## Phase 8 — Recovery & Wellness (draft)
+
+Run `supabase/phase8.sql` after the initial schema to create a private `wellness_logs` table with row-level policies.
+
+Visit `/recovery` from the Today dashboard or the desktop sidebar. Choose a date and optionally record bedtime, wake time, energy, subjective rest, preferred activity/rest, and notes. Time inputs use the device's local timezone. The app calculates recorded sleep duration from the entered times, supports overnight intervals, and lets users edit or delete their check-ins. No mandatory daily entries, readiness score, medical diagnosis or personalized treatment advice are generated.
+
+Security: every database operation is scoped to the authenticated user's ID, with Supabase RLS as a second protection layer. Do not expose this journal in public dashboards or AI requests without separate informed consent.
+
+Run `npm ci && npm test && npx tsc --noEmit && npm run build`. Manually verify authenticated create/update/delete, ownership isolation, local/overnight times, and iPhone Safari before merging.
+
+Phase 4 (#3), 5 (#4), 6 (#5) and 7 (#6) remain separate draft pull requests. Phase 8 is independent of their migrations.
