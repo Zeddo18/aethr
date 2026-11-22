@@ -5,7 +5,7 @@ export function validateReminder(value: unknown): ReminderPreferences | null {
   if (!value || typeof value !== "object") return null;
   const p = value as Record<string, unknown>;
   if (typeof p.enabled !== "boolean" || typeof p.reminder_time !== "string" ||
-    !/^([01]\\d|2[0-3]):[0-5]\\d$/.test(p.reminder_time) ||
+    !/^([01]\d|2[0-3]):[0-5]\d$/.test(p.reminder_time) ||
     (p.reminder_kind !== "check_in" && p.reminder_kind !== "rest")) return null;
   return { enabled: p.enabled, reminder_time: p.reminder_time, reminder_kind: p.reminder_kind };
 }
