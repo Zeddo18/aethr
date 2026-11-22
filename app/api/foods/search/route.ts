@@ -14,12 +14,14 @@ export async function GET(request: Request) {
   if (!user) return NextResponse.json({ results: [] }, { status: 401 });
 
   const q = new URL(request.url).searchParams.get("q")?.trim() ?? "";
+  const aliases: Record<string,string> = { kanin:"cooked rice", itlog:"egg", tokwa:"tofu", patis:"fish sauce", bangus:"milkfish", saging:"banana", manok:"chicken", baboy:"pork", bagoong:"shrimp paste" };
+  const searchTerm = aliases[q.toLocaleLowerCase("en-PH")] ?? q;
   if (q.length < 2 || q.length > 80) return NextResponse.json({ results: [] });
 
   try {
     const url =
       "https://world.openfoodfacts.org/cgi/search.pl?search_simple=1&action=process&json=1&page_size=10" +
-      `&fields=product_name,brands,nutriments&search_terms=${encodeURIComponent(q)}`;
+      `&fields=product_name,brands,nutriments&search_terms=${encodeURIComponent(searchTerm)}`;
     const res = await fetch(url, {
       headers: { "User-Agent": "AETHR/0.1 (personal nutrition tracker)" },
       signal: AbortSignal.timeout(7000),
