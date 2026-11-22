@@ -1,0 +1,63 @@
+# AETHR launch readiness — release gates
+
+**Current state: NOT CLEARED FOR PUBLIC LAUNCH.**
+A successful GitHub Actions build is one gate, not proof of secure, functioning, end-to-end production behavior.
+
+## 1. Merge and migration plan
+
+- [ ] Review Phase 4 Gym PR #3; confirm green CI and manual Supabase tests, then merge.
+- [ ] Review Phase 5 Run/Walk PR #4; confirm green CI, geolocation permissions and route privacy, then merge.
+- [ ] Review Phase 6 Advanced Nutrition PR #5; test recipe and barcode data accuracy, then merge.
+- [ ] Review Phase 7 Progress PR #6; test summaries with real user-owned records, then merge.
+- [ ] Review Phase 8 Recovery PR #7; apply its SQL and test private check-in CRUD, then merge.
+- [ ] Review Phase 9 App Experience PR #8; verify install manifest and reminder preferences, then merge.
+- [ ] Resolve any conflicts introduced by the independent branches **before** accepting merges.
+- [ ] Apply the SQL files **once**, in feature order: schema.sql, phase2.sql, phase4.sql, phase5.sql, phase6.sql, phase8.sql, phase9.sql, verifying tables and policy names against your existing database.
+- [ ] Verify migrations on a non-production Supabase project and save a rollback/backup plan before production migration.
+- [ ] Re-run full CI after all merged features are combined in main.
+
+## 2. Authentication and data isolation
+
+- [ ] Confirm sign up, email verification, login, logout, password reset and redirect flows.
+- [ ] Test all API endpoints logged out: deny access without leaking personal data.
+- [ ] With **two test accounts**, verify each cannot read, edit, overwrite, or delete the other's profiles, meals, exercises, sessions, GPS routes, recipes, progress, recovery journals, or reminder settings.
+- [ ] Review RLS and database grants for every public table using the Supabase Security Advisor.
+- [ ] Verify service-role credentials do not appear in client bundles, repository files, console output, or HTTP responses.
+- [ ] Establish a secure, documented process for user data export and account/data deletion before public launch.
+
+## 3. AI safety and spending
+
+- [ ] Configure OPENAI_API_KEY as a **server-only secret** in the deployment environment.
+- [ ] Set per-user persistent API request quotas / distributed rate limiting for AI parsing and transcription **before** opening registration publicly.
+- [ ] Set OpenAI project budgets/alerts; verify upstream timeouts and request-size ceilings.
+- [ ] Test English and Taglish meal parsing, AI failure, uncertain portions, photo permissions, and transcription denial.
+- [ ] Confirm every AI nutrition entry requires user review and explicit save.
+- [ ] Do not calculate restrictive calorie targets for minors or treat estimates as medical advice.
+- [ ] Ensure AI processing and data-retention practices are accurately explained in your privacy notice.
+
+## 4. iPhone / browser manual QA
+
+- [ ] Test iPhone Safari: sign in, profile, food logging, recipes, gym session, rest timer, run/walk activity, recovery and optional reminders.
+- [ ] Test 320px, 375px, 390px, and 430px mobile viewports and accessibility text-size enlargement.
+- [ ] Test "Add to Home Screen" manifest, icons, viewport safe areas, and back navigation.
+- [ ] Test camera, microphone and GPS permissions denied, revoked, and unavailable.
+- [ ] Confirm geolocation does not claim background accuracy while Safari is locked or backgrounded.
+- [ ] Verify touch controls, keyboard focus, text contrast and VoiceOver labels.
+- [ ] Check no personal or GPS location data is publicly visible or included in shared analytics.
+
+## 5. Reliability and operations
+
+- [ ] Run `npm ci`, `npm test`, `npx tsc --noEmit`, `npm run build` and review security audit output.
+- [ ] Investigate and remediate **all applicable high/critical npm dependency advisories**; do not run blind forced upgrades.
+- [ ] Configure HTTPS, environment variables, redirects and Supabase Auth production URLs.
+- [ ] Enable deployment error monitoring with private-data scrubbing and a tested incident response plan.
+- [ ] Test backup, restore, and data-export workflows before enabling real users.
+- [ ] Test network outage/failure handling; offline food, gym and GPS logging must not be claimed until implemented.
+- [ ] Prepare a privacy notice, contact channel and clear feature limitations.
+- [ ] Run staging tests with test accounts and non-sensitive demonstration records.
+
+## 6. Release sign-off
+
+Production launch is blocked until: **all feature PRs are integrated**, database migrations and owner isolation are verified, high/critical security advisories are addressed, AI rate limiting is implemented, data deletion/export workflows exist, and iPhone end-to-end tests pass.
+
+This checklist is an operational artifact, not an assertion that items have been completed.
