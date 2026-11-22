@@ -1,3 +1,4 @@
+
 # AETHR — Phase 1
 
 1. `npm install`
@@ -18,6 +19,16 @@
 **Current limits:** The assistant provides meal parsing, photo ingredient identification, voice transcription and confirmation-based food logging. It does not yet offer general conversational history or persistent AI chat. Food label matches are from community-maintained Open Food Facts; confirm brand and raw/cooked preparation. Meal time is displayed for review but the current database only stores the date. No AI request automatically writes meal data.
 
 **Security:** Keep OpenAI keys server-side. Enable cost limits/rate limiting and run authenticated end-to-end tests before public production use.
+
+## Phase 5: Running and walking (review branch)
+
+1. Apply `supabase/phase5.sql` in the Supabase SQL Editor.
+2. Sign in and open `/run`. Log runs, walks, or treadmill activity with distance (km), duration, start date/time and optional notes.
+3. Outdoor GPS is **optional**. Use Safari with HTTPS and allow geolocation. Keep the app in the foreground while recording.
+4. Tap Stop, review the measurements, and explicitly save the activity and route. Routes are stored under user-specific RLS.
+5. GPS routes can be deleted with their activity. The full map/route viewer, background GPS, offline queues and third-party integrations remain future work.
+
+Run `npm test && npx tsc --noEmit && npm run build`. Test permissions, route privacy and database migrations manually before production use. Never publish a user's exact GPS route.
 
 ## Phase 6 — Advanced Nutrition (draft PR)
 
