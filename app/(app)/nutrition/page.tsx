@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { BookOpen } from "lucide-react";
 import { ChevronLeft, ChevronRight, Trash2 } from "lucide-react";
 import { AddFood } from "@/components/add-food";
 import { formatDate, isDate, shiftDate, todayStr } from "@/lib/dates";
@@ -80,7 +81,12 @@ export default async function NutritionPage({ searchParams }: { searchParams: Pr
         )}
       </section>
 
-      <div className="mt-4"><AddFood date={date} /></div>
+      <div className="mt-4 space-y-3">
+        <Link href={`/nutrition/library?date=${date}`} className="btn-ghost w-full justify-center border border-line">
+          <BookOpen size={18} aria-hidden /> Saved foods, recipes & barcode lookup
+        </Link>
+        <AddFood date={date} />
+      </div>
 
       <div className="mt-8 space-y-6">
         {MEALS.map(([key, label]) => {

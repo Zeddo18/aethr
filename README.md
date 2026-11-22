@@ -1,3 +1,4 @@
+
 # AETHR — Phase 1
 
 1. `npm install`
@@ -28,6 +29,41 @@
 5. GPS routes can be deleted with their activity. The full map/route viewer, background GPS, offline queues and third-party integrations remain future work.
 
 Run `npm test && npx tsc --noEmit && npm run build`. Test permissions, route privacy and database migrations manually before production use. Never publish a user's exact GPS route.
+
+## Phase 6 — Advanced Nutrition (draft PR)
+
+Apply `supabase/phase6.sql` after earlier `schema.sql` and `phase2.sql` in the Supabase SQL editor. Open **Food → Saved foods, recipes & barcode lookup** (`/nutrition/library`).
+
+- Search packaged products by manually typing an 8–14 digit barcode. A camera scanner is optional and depends on BarcodeDetector support, camera permission, and HTTPS; manual entry remains available.
+- Check name, brand, and nutrition data against the actual packaging. Open Food Facts data is community-maintained and may be inaccurate or incomplete. Missing macros are not silently replaced with zero.
+- Save your own foods with complete per-100g calorie/protein/carb/fat figures from a trusted label or source.
+- Assemble up to 20 saved-food ingredients into a reusable recipe by entering exact gram weights. Recipe totals are computed from saved ingredient values, not estimated by AI.
+- Confirm the portion in grams and select a meal to log a saved food or recipe to your existing diary.
+- Common Filipino ingredient search words (kanin, itlog, tokwa, patis, bangus and others) now map to Open Food Facts searches. This is **not** an independently verified Filipino nutrition database.
+- Saved records are private under Supabase RLS. Deleting a saved item does not retroactively change diary records.
+
+**Caveats:** Recipe portions use summed ingredient weights; cooking water loss/gain can alter actual cooked weight and must be verified. No offline barcode cache or dedicated nutrition provenance database is included. A camera barcode scan is not guaranteed on iPhone Safari.
+
+Run `npm ci && npm test && npx tsc --noEmit && npm run build`, then test the database schema and RLS manually before merging.
+
+## Phase 7 — Progress Analytics (review branch)
+
+Sign in and open `/progress` or use the **Your 28-day progress** link from the Today dashboard.
+
+- Displays food-logging days and variety of distinct food names.
+- Displays completed gym sessions (only sessions with `finished_at`).
+- Displays running, walking and treadmill activity counts, total logged distance and time.
+- Shows four weeks of accessible bar charts and a day-by-day log, using `Asia/Manila` for session dates.
+- No weight-loss goals, performance rankings, calorie-deficit advice or mandatory streaks.
+- Reports missing data categories when Phase 4 or Phase 5 tables are not yet installed.
+- Only queries the current user's records, with Supabase RLS providing an additional layer of protection.
+
+**Dependencies:** Phase 2 food logging is already in `main`; gym figures require applying `supabase/phase4.sql`, and movement figures require `supabase/phase5.sql` in your own project. These earlier phases have separate open pull requests and are not merged automatically.
+
+**Data limitations:** Each category currently reads at most 1,000 rows for the 28-day period, and the page displays a partial-data notice if that boundary is reached. For larger datasets, implement server-side aggregation and pagination. Workout history is based on session start dates; exercise-level performance analytics are a separate future feature.
+
+Run `npm ci && npm test && npx tsc --noEmit && npm run build`. Real Supabase, RLS, and iPhone Safari verification remain necessary before release.
+
 ## Phase 8 — Recovery & Wellness (draft)
 
 Run `supabase/phase8.sql` after the initial schema to create a private `wellness_logs` table with row-level policies.
