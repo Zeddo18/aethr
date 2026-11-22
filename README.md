@@ -18,3 +18,15 @@
 **Current limits:** The assistant provides meal parsing, photo ingredient identification, voice transcription and confirmation-based food logging. It does not yet offer general conversational history or persistent AI chat. Food label matches are from community-maintained Open Food Facts; confirm brand and raw/cooked preparation. Meal time is displayed for review but the current database only stores the date. No AI request automatically writes meal data.
 
 **Security:** Keep OpenAI keys server-side. Enable cost limits/rate limiting and run authenticated end-to-end tests before public production use.
+
+## Phase 8 — Recovery & Wellness (draft)
+
+Run `supabase/phase8.sql` after the initial schema to create a private `wellness_logs` table with row-level policies.
+
+Visit `/recovery` from the Today dashboard or the desktop sidebar. Choose a date and optionally record bedtime, wake time, energy, subjective rest, preferred activity/rest, and notes. Time inputs use the device's local timezone. The app calculates recorded sleep duration from the entered times, supports overnight intervals, and lets users edit or delete their check-ins. No mandatory daily entries, readiness score, medical diagnosis or personalized treatment advice are generated.
+
+Security: every database operation is scoped to the authenticated user's ID, with Supabase RLS as a second protection layer. Do not expose this journal in public dashboards or AI requests without separate informed consent.
+
+Run `npm ci && npm test && npx tsc --noEmit && npm run build`. Manually verify authenticated create/update/delete, ownership isolation, local/overnight times, and iPhone Safari before merging.
+
+Phase 4 (#3), 5 (#4), 6 (#5) and 7 (#6) remain separate draft pull requests. Phase 8 is independent of their migrations.
