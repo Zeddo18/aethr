@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Apple, Dumbbell, Footprints } from "lucide-react";
+import { Apple, Dumbbell, Footprints, Settings2 } from "lucide-react";
 import { OrbitLine } from "@/components/orbit-line";
 import { todayStr } from "@/lib/dates";
 import { createClient } from "@/lib/supabase/server";
@@ -13,7 +13,7 @@ export default async function Dashboard() {
   const { data: entries } = await supabase.from("meal_entries").select("calories").eq("user_id", user!.id).eq("eaten_on", todayStr());
 
   const first = (profile?.display_name ?? "").split(" ")[0];
-  const date = new Intl.DateTimeFormat("en", { weekday: "long", month: "long", day: "numeric" }).format(new Date());
+  const date = new Intl.DateTimeFormat("en", { weekday: "long", month: "long", day: "numeric", timeZone: "Asia/Manila" }).format(new Date());
   const kcal = Math.round((entries ?? []).reduce((s, e) => s + Number(e.calories), 0));
 
   const cards = [
@@ -27,6 +27,7 @@ export default async function Dashboard() {
       <p className="text-sm text-muted">{date}</p>
       <h1 className="mt-1 font-display text-4xl font-semibold tracking-tight">{first ? `Hi, ${first}` : "Today"}</h1>
       <OrbitLine className="my-6 h-8 w-full" />
+      <Link href="/settings" className="mb-5 flex items-center gap-3 rounded-2xl border border-line bg-surface px-5 py-4 text-sm hover:border-accent"><Settings2 size={20} className="text-accent" aria-hidden /> App preferences & installation</Link>
       <ul className="grid gap-3 sm:grid-cols-3">
         {cards.map(({ icon: Icon, title, text, href }) => (
           <li key={title}>
