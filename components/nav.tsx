@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Apple, Dumbbell, Footprints, Home, UserRound, LogOut, Sparkles } from "lucide-react";
+import { Apple, Dumbbell, Footprints, Home, UserRound, LogOut, Sparkles, Settings2 } from "lucide-react";
 import { signOut } from "@/app/actions";
 import { Brand } from "@/components/brand";
 
@@ -32,6 +32,7 @@ export function Nav({ name }: { name: string }) {
           ))}
         </nav>
         <div className="border-t border-line pt-4">
+          <Link href="/settings" aria-current={active("/settings") ? "page" : undefined} className="btn-ghost w-full"><Settings2 size={20} aria-hidden /> App settings</Link>
           <Link href="/profile" className="btn-ghost w-full"><UserRound size={20} aria-hidden /> Profile</Link>
           <p className="truncate px-3 pb-2 text-sm text-muted">{name}</p>
           <form action={signOut}>
