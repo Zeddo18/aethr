@@ -1,3 +1,4 @@
+
 # AETHR — Phase 1
 
 1. `npm install`
@@ -28,8 +29,65 @@
 5. GPS routes can be deleted with their activity. The full map/route viewer, background GPS, offline queues and third-party integrations remain future work.
 
 Run `npm test && npx tsc --noEmit && npm run build`. Test permissions, route privacy and database migrations manually before production use. Never publish a user's exact GPS route.
+
+## Phase 6 — Advanced Nutrition (draft PR)
+
+Apply `supabase/phase6.sql` after earlier `schema.sql` and `phase2.sql` in the Supabase SQL editor. Open **Food → Saved foods, recipes & barcode lookup** (`/nutrition/library`).
+
+- Search packaged products by manually typing an 8–14 digit barcode. A camera scanner is optional and depends on BarcodeDetector support, camera permission, and HTTPS; manual entry remains available.
+- Check name, brand, and nutrition data against the actual packaging. Open Food Facts data is community-maintained and may be inaccurate or incomplete. Missing macros are not silently replaced with zero.
+- Save your own foods with complete per-100g calorie/protein/carb/fat figures from a trusted label or source.
+- Assemble up to 20 saved-food ingredients into a reusable recipe by entering exact gram weights. Recipe totals are computed from saved ingredient values, not estimated by AI.
+- Confirm the portion in grams and select a meal to log a saved food or recipe to your existing diary.
+- Common Filipino ingredient search words (kanin, itlog, tokwa, patis, bangus and others) now map to Open Food Facts searches. This is **not** an independently verified Filipino nutrition database.
+- Saved records are private under Supabase RLS. Deleting a saved item does not retroactively change diary records.
+
+**Caveats:** Recipe portions use summed ingredient weights; cooking water loss/gain can alter actual cooked weight and must be verified. No offline barcode cache or dedicated nutrition provenance database is included. A camera barcode scan is not guaranteed on iPhone Safari.
+
+Run `npm ci && npm test && npx tsc --noEmit && npm run build`, then test the database schema and RLS manually before merging.
+
+## Phase 7 — Progress Analytics (review branch)
+
+Sign in and open `/progress` or use the **Your 28-day progress** link from the Today dashboard.
+
+- Displays food-logging days and variety of distinct food names.
+- Displays completed gym sessions (only sessions with `finished_at`).
+- Displays running, walking and treadmill activity counts, total logged distance and time.
+- Shows four weeks of accessible bar charts and a day-by-day log, using `Asia/Manila` for session dates.
+- No weight-loss goals, performance rankings, calorie-deficit advice or mandatory streaks.
+- Reports missing data categories when Phase 4 or Phase 5 tables are not yet installed.
+- Only queries the current user's records, with Supabase RLS providing an additional layer of protection.
+
+**Dependencies:** Phase 2 food logging is already in `main`; gym figures require applying `supabase/phase4.sql`, and movement figures require `supabase/phase5.sql` in your own project. These earlier phases have separate open pull requests and are not merged automatically.
+
+**Data limitations:** Each category currently reads at most 1,000 rows for the 28-day period, and the page displays a partial-data notice if that boundary is reached. For larger datasets, implement server-side aggregation and pagination. Workout history is based on session start dates; exercise-level performance analytics are a separate future feature.
+
+Run `npm ci && npm test && npx tsc --noEmit && npm run build`. Real Supabase, RLS, and iPhone Safari verification remain necessary before release.
+
+## Phase 8 — Recovery & Wellness (draft)
+
+Run `supabase/phase8.sql` after the initial schema to create a private `wellness_logs` table with row-level policies.
+
+Visit `/recovery` from the Today dashboard or the desktop sidebar. Choose a date and optionally record bedtime, wake time, energy, subjective rest, preferred activity/rest, and notes. Time inputs use the device's local timezone. The app calculates recorded sleep duration from the entered times, supports overnight intervals, and lets users edit or delete their check-ins. No mandatory daily entries, readiness score, medical diagnosis or personalized treatment advice are generated.
+
+Security: every database operation is scoped to the authenticated user's ID, with Supabase RLS as a second protection layer. Do not expose this journal in public dashboards or AI requests without separate informed consent.
+
+Run `npm ci && npm test && npx tsc --noEmit && npm run build`. Manually verify authenticated create/update/delete, ownership isolation, local/overnight times, and iPhone Safari before merging.
+
+Phase 4 (#3), 5 (#4), 6 (#5) and 7 (#6) remain separate draft pull requests. Phase 8 is independent of their migrations.
+
+## Phase 9 — App experience (draft)
+
+Install AETHR through Safari's **Share → Add to Home Screen**, or the browser's install action where available. AETHR includes a Next.js web app manifest and uses existing app icons. It is **online-only**: offline caching and background sync are not implemented.
+
+Visit `/settings` from the Today dashboard or desktop sidebar. All reminders are **off by default**. Optionally choose a daily in-app reminder time (Philippine time) and a gentle check-in or rest message. The message appears only while the Settings page is open in a visible tab, at most once per tab-session and local day. **There are no push notifications, background timers, email messages or scheduled deliveries.**
+
+Run `supabase/phase9.sql` after the core schema to store private reminder preferences behind authenticated RLS policies. You can turn reminders off whenever you wish.
+
+Run `npm ci && npm test && npx tsc --noEmit && npm run build`. Test user authorization, settings persistence, manifest installation and iPhone Safari. Do not merge without manual validation.
+
 ## Phase 10 — Launch readiness
 
 This review branch introduces baseline response security headers, updates GitHub CI to Node.js 22, and adds informational production dependency auditing. See [RELEASE_CHECKLIST.md](RELEASE_CHECKLIST.md) for detailed release blockers and staging verification steps.
 
-**Not ready for production yet.** Phases 4–9 are separate review PRs; they must be integrated and tested together before a public launch. Supabase RLS, AI per-user rate limits and billing controls, user data export/deletion, real iPhone testing, security advisories and privacy disclosures require completion. Do not infer production readiness from a green CI build alone.
+**Not ready for production yet.** Phases 4–9 are merged into main; database migrations and end-to-end testing are still required before a public launch. Supabase RLS, AI per-user rate limits and billing controls, user data export/deletion, real iPhone testing, security advisories and privacy disclosures require completion. Do not infer production readiness from a green CI build alone.

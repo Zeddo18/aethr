@@ -5,13 +5,13 @@ A successful GitHub Actions build is one gate, not proof of secure, functioning,
 
 ## 1. Merge and migration plan
 
-- [ ] Review Phase 4 Gym PR #3; confirm green CI and manual Supabase tests, then merge.
-- [ ] Review Phase 5 Run/Walk PR #4; confirm green CI, geolocation permissions and route privacy, then merge.
-- [ ] Review Phase 6 Advanced Nutrition PR #5; test recipe and barcode data accuracy, then merge.
-- [ ] Review Phase 7 Progress PR #6; test summaries with real user-owned records, then merge.
-- [ ] Review Phase 8 Recovery PR #7; apply its SQL and test private check-in CRUD, then merge.
-- [ ] Review Phase 9 App Experience PR #8; verify install manifest and reminder preferences, then merge.
-- [ ] Resolve any conflicts introduced by the independent branches **before** accepting merges.
+- [x] Phase 4 Gym PR #3 merged into main (live Supabase testing remains outstanding).
+- [x] Phase 5 Run/Walk PR #4 merged into main (GPS permission and privacy tests remain outstanding).
+- [x] Phase 6 Advanced Nutrition PR #5 merged into main (nutrition accuracy checks remain outstanding).
+- [x] Phase 7 Progress PR #6 merged into main (live-data summaries remain unverified).
+- [x] Phase 8 Recovery PR #7 merged into main (database migration and check-in testing remain outstanding).
+- [x] Phase 9 App Experience PR #8 merged into main (installation and reminder tests remain outstanding).
+- [x] Resolve feature-branch conflicts through Phase 9 and preserve overlapping navigation and README sections.
 - [ ] Apply the SQL files **once**, in feature order: schema.sql, phase2.sql, phase4.sql, phase5.sql, phase6.sql, phase8.sql, phase9.sql, verifying tables and policy names against your existing database.
 - [ ] Verify migrations on a non-production Supabase project and save a rollback/backup plan before production migration.
 - [ ] Re-run full CI after all merged features are combined in main.
@@ -58,6 +58,6 @@ A successful GitHub Actions build is one gate, not proof of secure, functioning,
 
 ## 6. Release sign-off
 
-Production launch is blocked until: **all feature PRs are integrated**, database migrations and owner isolation are verified, high/critical security advisories are addressed, AI rate limiting is implemented, data deletion/export workflows exist, and iPhone end-to-end tests pass.
+Production launch remains blocked until: **all Phase 10 checks pass**, database migrations and owner isolation are verified, high/critical security advisories are addressed, AI rate limiting is implemented, data deletion/export workflows exist, and iPhone end-to-end tests pass.
 
 This checklist is an operational artifact, not an assertion that items have been completed.
