@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Apple, Dumbbell, Footprints, ChartNoAxesCombined, Moon } from "lucide-react";
+import { Apple, Dumbbell, Footprints, ChartNoAxesCombined, Moon, Settings2 } from "lucide-react";
 import { OrbitLine } from "@/components/orbit-line";
 import { todayStr } from "@/lib/dates";
 import { createClient } from "@/lib/supabase/server";
@@ -27,6 +27,7 @@ export default async function Dashboard() {
       <p className="text-sm text-muted">{date}</p>
       <h1 className="mt-1 font-display text-4xl font-semibold tracking-tight">{first ? `Hi, ${first}` : "Today"}</h1>
       <OrbitLine className="my-6 h-8 w-full" />
+      <Link href="/settings" className="mb-5 flex items-center gap-3 rounded-2xl border border-line bg-surface px-5 py-4 text-sm hover:border-accent"><Settings2 size={20} className="text-accent" aria-hidden /> App preferences & installation</Link>
       <Link href="/recovery" className="mb-5 flex items-center gap-3 rounded-2xl border border-line bg-surface p-4 text-sm hover:border-accent"><Moon size={20} className="text-accent" aria-hidden /> Recovery & wellness journal</Link>
       <Link href="/progress" className="mb-5 flex items-center justify-between rounded-2xl border border-line bg-surface px-5 py-4 text-sm font-medium hover:border-accent"><span className="flex items-center gap-2"><ChartNoAxesCombined size={20} className="text-accent" aria-hidden /> Your 28-day progress</span><span className="text-muted">View history</span></Link>
       <ul className="grid gap-3 sm:grid-cols-3">
