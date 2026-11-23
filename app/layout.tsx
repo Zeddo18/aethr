@@ -10,6 +10,8 @@ export const metadata: Metadata = {
   description: "Nutrition, gym and running in one place.",
   applicationName: "AETHR",
   appleWebApp: { capable: true, title: "AETHR", statusBarStyle: "black" },
+  // Next.js 15 emits the generic capability flag; explicitly add the Apple tag.
+  other: { "apple-mobile-web-app-capable": "yes" },
 };
 
 export const viewport: Viewport = {
