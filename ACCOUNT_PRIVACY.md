@@ -35,6 +35,8 @@ The server must also have the correct `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLI
 
 ## What deletion does and does not cover
 
+**Required Phase 16 schema fix:** Apply `supabase/phase16.sql` to the verified staging project after Phase 4. Its foreign-key change makes `workout_template_exercises.exercise_id` cascade when a personal exercise is deleted; without it, PostgreSQL may reject full account deletion. This issue was caught by the Phase 16 disposable PostgreSQL test before merging. Verify the change and full rollback/backup plan before configuring the server deletion key.
+
 Deleting `auth.users` removes AETHR's data rows that reference that user with `ON DELETE CASCADE`. GitHub CI verifies this behavior on a **disposable PostgreSQL database with synthetic users** and also verifies another user's records are untouched.
 
 Account deletion **does not prove immediate removal** of platform logs, Supabase backups, external service records, files in any future Storage buckets, or backups beyond AETHR's database. Document retention and contact procedures in a real privacy notice before launch. Access tokens may remain valid until their expiry even after deletion; app data no longer exists under the deleted account ID.
