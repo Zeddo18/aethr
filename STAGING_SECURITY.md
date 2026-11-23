@@ -59,3 +59,8 @@ Before public release, stage an end-to-end test with two accounts for create/upd
 ## Phase 15 staging prerequisite
 
 If Phase 15 code is deployed without `supabase/phase15.sql` on the **correct** project, AI meal parsing and voice transcription intentionally respond with HTTP 503 (and manual meal logging remains available). Use only a verified AETHR staging project, inspect existing migrations, then run the Phase 15 SQL. Test two-account quotas and the absence of anonymous RPC privileges before using an OpenAI key in public production.
+
+
+## Phase 19 — Write-policy regression coverage
+
+The disposable CI suite now exercises cross-account UPDATE and DELETE attempts across all 13 account-owned tables, plus ownership transfers and parent-reference reassignment for workout templates, workout sets and GPS routes. These tests use synthetic users and rolled-back transactions only. The real staging Data API still requires its own two-account write tests.
