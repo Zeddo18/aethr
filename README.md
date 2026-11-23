@@ -110,3 +110,11 @@ AI meal descriptions/photos and voice transcription now reserve a **per-account 
 - A per-account limit is **not** a global spending limit. Configure OpenAI organization/project budgets and additional anti-abuse controls before a public launch.
 
 See `PROGRESS.md` for phase status and `RELEASE_CHECKLIST.md` for deployment gates.
+
+## Phase 16 — Account privacy and data controls
+
+Open **Settings → Account and privacy** to download a JSON copy of your owned AETHR records or permanently delete your account after entering the correct password and the exact confirmation phrase.
+
+Data exports cover 13 user-owned tables, including personal GPS route coordinates, and **fail rather than silently omit records** when a query fails or the download exceeds safety limits. Treat downloaded files as private. Account deletion is performed by a server-only Supabase Admin client after password reauthentication, and uses database cascade rules to remove owned app rows.
+
+**Deletion remains disabled (HTTP 503) unless the verified server deployment has a private `SUPABASE_SERVICE_ROLE_KEY`.** Do not expose that key publicly or configure it against an unverified Supabase project. Backups, third-party provider logs and other retention controls still need separate documentation. See `ACCOUNT_PRIVACY.md` for full details, limitations and staging-only verification requirements.
