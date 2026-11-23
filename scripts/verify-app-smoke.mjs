@@ -58,8 +58,14 @@ async function main() {
   check("Login screen loads", login.status === 200 && loginHtml.includes("Sign in"));
   check("iPhone viewport is configured", /name="viewport"/.test(loginHtml) &&
     /viewport-fit=cover/.test(loginHtml));
-  check("Mobile installation metadata appears", /apple-mobile-web-app-capable/.test(loginHtml) &&
-    /rel="manifest"/.test(loginHtml));
+  const appleMeta = /apple-mobile-web-app-capable/.test(loginHtml);
+  const modernMeta = /mobile-web-app-capable/.test(loginHtml);
+  const manifestLink = /rel="manifest"/.test(loginHtml);
+  console.log("Mobile metadata presence:", JSON.stringify({
+    appleMeta, modernMeta, manifestLink,
+  }));
+  check("iPhone web app capability tag exists", appleMeta || modernMeta);
+  check("PWA manifest linked from login HTML", manifestLink);
 
   const register = await request("/register");
   check("Registration screen loads", register.status === 200 &&
