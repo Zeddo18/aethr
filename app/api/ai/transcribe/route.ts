@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { consumeAiAllowance, aiQuotaError } from "@/lib/ai/quota";
 import { createClient } from "@/lib/supabase/server";
 
 export const runtime = "nodejs";
@@ -18,6 +19,10 @@ export async function POST(request: Request) {
       !["audio/webm", "audio/mp4", "audio/mpeg", "audio/wav", "audio/x-m4a", "audio/mp4;codecs=mp4a.40.2"].includes(audio.type)) {
     return NextResponse.json({ error: "Unsupported audio format or recording size (8 MB maximum)." }, { status: 400 });
   }
+  // Reserve a token atomically before making a paid OpenAI request.
+  const allowance = await consumeAiAllowance(supabase, "transcribe");
+  if (allowance !== "allowed") return aiQuotaError(allowance);
+
   const body = new FormData();
   body.set("file", audio, audio.name || "voice.webm");
   body.set("model", "whisper-1");
