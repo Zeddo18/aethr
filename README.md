@@ -91,3 +91,9 @@ Run `npm ci && npm test && npx tsc --noEmit && npm run build`. Test user authori
 This review branch introduces baseline response security headers, updates GitHub CI to Node.js 22, and adds informational production dependency auditing. See [RELEASE_CHECKLIST.md](RELEASE_CHECKLIST.md) for detailed release blockers and staging verification steps.
 
 **Not ready for production yet.** Phases 4–9 are merged into main; database migrations and end-to-end testing are still required before a public launch. Supabase RLS, AI per-user rate limits and billing controls, user data export/deletion, real iPhone testing, security advisories and privacy disclosures require completion. Do not infer production readiness from a green CI build alone.
+
+## Phase 14 — Live Supabase staging verification
+
+After Phases 11–13 security CI, AETHR adds an **opt-in read-only staging Auth/Data API verifier** at `scripts/verify-supabase-staging.mjs` with synthetic two-account test fixtures. It refuses unconfirmed project refs and non-public keys, fails closed when private fixture records or Data API grants are missing, and does not mutate application tables.
+
+**Do not run it against production or guess which connected Supabase project belongs to AETHR.** Review `STAGING_SECURITY.md` for staged prerequisites and `RELEASE_CHECKLIST.md` for remaining blockers. The production database, real two-account tests, and iPhone permissions remain unverified.
