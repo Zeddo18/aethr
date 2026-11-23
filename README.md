@@ -124,3 +124,11 @@ Data exports cover 13 user-owned tables, including personal GPS route coordinate
 The AETHR CI workflow now boots the **built Next.js app** and checks unauthenticated route protection, JSON API errors, public PWA manifest/icons, mobile viewport settings and security headers via `npm run verify:smoke`. Middleware has also been updated so the install manifest loads without signing in, while signed-out API requests receive HTTP 401 JSON rather than a login HTML redirect.
 
 See `IPHONE_QA.md` for the real iPhone Safari, App Home Screen, Auth, permission and live staging tests. **Those manual acceptance checks are not yet complete; the live AETHR Supabase project has not been identified and no project was modified by this phase.**
+
+## Phase 18 — Staging setup and real integration checks
+
+AETHR includes a **manual-only** GitHub Actions workflow to verify a separately approved **non-production** Supabase project and HTTPS staging app. It checks the deployed login/PWA/login protection through read-only GET requests, then checks real Auth and per-user read isolation in all 13 AETHR data tables using **two synthetic test accounts**. It never runs automatically on a push and never deletes real data.
+
+The branch also includes `supabase/verify_staging_readiness.sql`: a read-only 18-check database catalog report for the expected tables, RLS, authenticated SELECT, AI request quota isolation and workout account-deletion foreign key. Its results are tested in disposable CI PostgreSQL.
+
+**Real staging verification is still pending** because no connected Supabase/Vercel project has been identified and prepared as AETHR staging. Review `STAGING_RUNBOOK.md` for setup instructions; do not run AETHR migrations against an unrelated connected project.
