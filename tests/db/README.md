@@ -29,3 +29,12 @@ After explicitly identifying the AETHR staging database:
 **Never execute** `tests/db/bootstrap.sql`, `tests/db/seed.sql`, or `tests/db/isolation.sql` on a real Supabase project. They create disposable roles and synthetic accounts and belong only in isolated CI databases.
 
 Production launch remains blocked until real staging or production RLS/permissions verification is completed.
+
+
+## Phase 19 — Exhaustive write-isolation tests
+
+The CI job now also executes `tests/db/write-isolation.sql` after the existing read and insert checks. With synthetic account A authenticated, it attempts cross-account UPDATE and DELETE operations on every account-owned table, then attempts to reassign account A's own records to account B. It separately checks parent-link reassignment for workout template exercises, workout sets and GPS route points.
+
+The test expects the protected mutation to affect zero rows or be rejected by RLS `WITH CHECK`. It raises an exception if a cross-account mutation succeeds. All test transactions roll back, and a final fixture-integrity check confirms account B's meal, template-exercise and GPS fixtures remain present.
+
+**This is disposable PostgreSQL CI coverage only. It does not contact Supabase Auth or prove the real project's Data API grants and policies.**
