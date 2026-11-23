@@ -95,3 +95,16 @@ The CI PostgreSQL JWT context is simulated. Passing those tests does **not** pro
 - [ ] Test AI provider failure, network loss and manual-food-entry fallback on iPhone Safari.
 
 **The code will fail closed until its database migration is installed. A passing GitHub build does not mean the live AI feature is operational.**
+
+## 10. Phase 16 — Export and deletion safety
+
+- [x] Add authenticated, no-store downloads of all 13 owned AETHR app tables, including GPS route points and child template exercises.
+- [x] Add same-origin protection, explicit typed deletion confirmation, password reauthentication and a **server-only** Supabase Admin deletion route.
+- [x] Add unit tests for ownership-scoped exports, pagination, failure on missing tables, confirmation and key protection.
+- [x] Add a disposable PostgreSQL deletion-cascade test checking another user's records remain intact.
+- [ ] Confirm the real AETHR staging project before configuring a privileged deletion key or applying any schema migrations.
+- [ ] Test two disposable staging accounts end to end, including export completeness, failed/missing credentials, account deletion and re-login denial.
+- [ ] Document backup retention, any external/AI-provider records and privacy rights/contact options before public launch.
+- [ ] Verify secure file handling and accessible controls on iPhone Safari.
+
+**No live user was deleted and no privileged deployment key was configured by this development phase.** See `ACCOUNT_PRIVACY.md`.
