@@ -17,8 +17,11 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
-      - name: Dependency vulnerability report (informational)
-        run: npm audit --omit=dev --audit-level=high || true
+      - name: Block high or critical production dependency vulnerabilities
+        run: npm audit --omit=dev --audit-level=high
+      - name: Report remaining development dependency advisories (informational)
+        if: always()
+        run: npm audit --audit-level=moderate || true
       - run: npm test
       - run: npx tsc --noEmit
       - run: npm run build
