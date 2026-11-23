@@ -72,3 +72,14 @@ This checklist is an operational artifact, not an assertion that items have been
 - [ ] Re-run Supabase Security Advisor; investigate any warnings, then test iPhone Safari end to end.
 
 The CI PostgreSQL JWT context is simulated. Passing those tests does **not** prove live Supabase Auth, Data API grants, or the project-specific migration state is correct. See `tests/db/README.md`.
+
+## 8. Phase 14 — Real Supabase Auth/Data API staging validation
+
+- [x] Add a fail-closed, read-only Auth/Data API verifier and automated mock regression tests.
+- [ ] Identify **the correct AETHR staging Supabase project ref**; the currently active connected project has unrelated `decks` and `notes` tables, and the other project is inactive.
+- [ ] Audit the confirmed project's actual schema, RLS and grants using `supabase/verify_security.sql` and Supabase Security Advisor.
+- [ ] Confirm that the two test accounts have complete, separate synthetic fixture records in all 13 AETHR data tables.
+- [ ] Run `node --env-file=.env.staging.local scripts/verify-supabase-staging.mjs` against that verified staging target. A missing table or fixture is **not a pass**.
+- [ ] Manually verify cross-account INSERT, UPDATE and DELETE restrictions through actual Auth/Data API sessions, and test iPhone Safari login, data privacy, and permissions.
+
+**Automated CI does not contact the user's Supabase project.** See `STAGING_SECURITY.md`. No live database has been migrated by this phase.
