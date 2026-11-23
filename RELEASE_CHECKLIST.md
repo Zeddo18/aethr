@@ -102,7 +102,7 @@ The CI PostgreSQL JWT context is simulated. Passing those tests does **not** pro
 - [x] Add same-origin protection, explicit typed deletion confirmation, password reauthentication and a **server-only** Supabase Admin deletion route.
 - [x] Add unit tests for ownership-scoped exports, pagination, failure on missing tables, confirmation and key protection.
 - [x] Add a disposable PostgreSQL deletion-cascade test checking another user's records remain intact.
-- [ ] Confirm the real AETHR staging project before configuring a privileged deletion key or applying any schema migrations.
+- [ ] Confirm the real AETHR staging project and apply/validate `supabase/phase16.sql` after Phase 4; without this FK fix, account deletion may fail when workout templates reference personal exercises. Only then configure a privileged deletion key.
 - [ ] Test two disposable staging accounts end to end, including export completeness, failed/missing credentials, account deletion and re-login denial.
 - [ ] Document backup retention, any external/AI-provider records and privacy rights/contact options before public launch.
 - [ ] Verify secure file handling and accessible controls on iPhone Safari.
