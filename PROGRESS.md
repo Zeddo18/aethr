@@ -1,40 +1,38 @@
 # AETHR Development Progress
 
-Updated November 23, 2026.
+Updated November 23, 2026. This file summarizes GitHub implementation; it is **not** a live-production certification.
 
-## Completed and merged into main
+## Implemented and merged — Phases 1–15
 
-- Phase 1 — Foundation and Supabase authentication: implemented (live sign-in still needs staging/device testing).
-- Phase 2 — Meal diary and food logging: merged.
-- Phase 3 — AI-assisted food interpretation with explicit confirmation: merged.
-- Phase 4 — Gym workout sets, templates, timers and history: merged.
-- Phase 5 — Running, walking and treadmill logs; optional foreground-only GPS: merged.
-- Phase 6 — Saved foods, recipes and barcode lookup: merged.
-- Phase 7 — Progress analytics: merged.
-- Phase 8 — Recovery and wellness journal: merged.
-- Phase 9 — Installable app experience and in-app reminders: merged.
-- Phase 10 — Launch-readiness checklist and CI gates: merged.
-- Phase 11 — Patched nested PostCSS and enforced production dependency audit: merged.
-- Phase 12 — Upgraded Vitest/Vite/esbuild and enforced the full dependency audit: merged.
-- Phase 13 — Disposable PostgreSQL migration and row-level security tests: merged.
-- Phase 14 — Opt-in, read-only staging Auth/Data API verification tool: merged.
+- Phase 1: App foundation and Supabase authentication.
+- Phase 2: Food diary and nutrition logging.
+- Phase 3: AI-assisted food logging with confirmation.
+- Phase 4: Gym Tracker — sessions, exercise sets, templates and history.
+- Phase 5: Run/walk/treadmill logging, optional foreground GPS.
+- Phase 6: Saved foods, recipes and barcode lookup.
+- Phase 7: Progress analytics.
+- Phase 8: Recovery and wellness journal.
+- Phase 9: App settings, optional reminders and installation experience.
+- Phase 10: Launch-readiness checklist and automated checks.
+- Phase 11: Production dependency security remediation.
+- Phase 12: Development dependency audits and toolchain upgrade.
+- Phase 13: PostgreSQL migrations and two-account RLS tests in CI.
+- Phase 14: Opt-in staging Supabase Auth/Data API verification tool.
+- Phase 15: Database-backed AI request quotas and fail-closed spending protection.
 
-## Phase 15 — AI usage protection
+## Phase 16 — Account privacy controls
 
-- Protect AI meal interpretation and voice transcription with **atomic per-user database quotas**.
-- Default limits: **12 meal analyses and 4 voice transcriptions per UTC hour per signed-in account**.
-- Return HTTP 429 when the limit is reached, and HTTP 503 when the protection is unavailable.
-- Manual food logging remains available; never contact paid OpenAI services when quota verification fails.
-- The private counter schema and RPC are defined in `supabase/phase15.sql`.
-- Verify the migration, cross-account independence, table privileges and limits in disposable PostgreSQL CI before merging.
-- **Live AETHR Supabase project remains unidentified. The Phase 15 SQL migration has NOT been applied to a live project.**
+- Download an account-owned JSON data export covering all 13 app data tables, including private GPS and workout template details. Queries are scoped to the signed-in user, paginated, and error if incomplete.
+- Delete an account only with current-password re-verification, an exact confirmation phrase, a same-origin request and a server-only Supabase Admin key.
+- Verify the database ON DELETE CASCADE behavior with two synthetic users in disposable PostgreSQL CI.
+- See `ACCOUNT_PRIVACY.md` for setup, limits and requirements. Live account deletion is **not enabled** until the correct deployment and privileged key are verified.
 
-## Next release blockers
+## Still required before public launch
 
-1. Identify and prepare the correct AETHR staging Supabase project; never apply schema migrations to an unrelated connected project.
-2. Apply and validate the existing AETHR SQL setup files, plus Phase 15 after it merges.
-3. Run the live two-account Auth/Data API verification and check real read/write isolation.
-4. Add global AI spend caps/abuse protection; per-user quotas alone do not prevent abuse across many accounts.
-5. Implement secure data export/deletion, test real iPhone Safari permissions and app flows, and complete `RELEASE_CHECKLIST.md`.
+1. Identify the correct AETHR Supabase staging/production project; do not use unrelated connected projects.
+2. Apply/review missing migrations to staging, then verify real Auth, RLS and Data API isolation with two test accounts.
+3. Configure `supabase/phase15.sql` for AI quota enforcement and separate global OpenAI budgets/abuse controls.
+4. Validate the personal export and deletion UI with **disposable staging accounts only** and document backup/provider retention.
+5. Complete iPhone Safari, accessibility, privacy, recovery and backup/restore testing.
 
-**Passing automated checks and merging GitHub code is not production deployment or live database verification.**
+**GitHub CI passing and code being merged do not mean that live databases or production deployment are configured.**
