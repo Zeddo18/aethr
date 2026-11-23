@@ -64,7 +64,8 @@ async function main() {
   console.log("Mobile metadata presence:", JSON.stringify({
     appleMeta, modernMeta, manifestLink,
   }));
-  check("iPhone web app capability tag exists", appleMeta || modernMeta);
+  check("Apple-specific iPhone Home Screen capability tag exists", appleMeta);
+  check("Generic modern mobile-app capability tag exists", modernMeta);
   check("PWA manifest linked from login HTML", manifestLink);
 
   const register = await request("/register");
