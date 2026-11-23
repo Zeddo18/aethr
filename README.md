@@ -97,3 +97,16 @@ This review branch introduces baseline response security headers, updates GitHub
 After Phases 11–13 security CI, AETHR adds an **opt-in read-only staging Auth/Data API verifier** at `scripts/verify-supabase-staging.mjs` with synthetic two-account test fixtures. It refuses unconfirmed project refs and non-public keys, fails closed when private fixture records or Data API grants are missing, and does not mutate application tables.
 
 **Do not run it against production or guess which connected Supabase project belongs to AETHR.** Review `STAGING_SECURITY.md` for staged prerequisites and `RELEASE_CHECKLIST.md` for remaining blockers. The production database, real two-account tests, and iPhone permissions remain unverified.
+
+## Phase 15 — AI usage protection (database migration required)
+
+AI meal descriptions/photos and voice transcription now reserve a **per-account token in the database before calling OpenAI**. The default allowance is **12 meal analyses and 4 voice transcriptions per UTC hour** per signed-in user. Concurrent requests share one atomic PostgreSQL counter, including across separate server instances.
+
+- When the allowance is exhausted, the app returns **HTTP 429**. The user can continue logging food manually.
+- If Supabase's quota RPC is unavailable or `supabase/phase15.sql` has **not** been applied, AI endpoints return **HTTP 503** instead of risking unmetered charges. Normal meal logging is unaffected.
+- Requests are counted when sent, even if the downstream AI provider fails. This intentionally prevents unlimited paid retries.
+- Apply `supabase/phase15.sql` **only after confirming the real AETHR staging project** and reviewing migration history. The connected project with `decks` and `notes` is not confirmed as AETHR.
+- Database counters live in a non-exposed schema. The `public.consume_ai_quota` function intentionally runs with elevated SQL privileges but takes no user ID, reads `auth.uid()`, performs only bounded counter writes and has execution granted only to authenticated users.
+- A per-account limit is **not** a global spending limit. Configure OpenAI organization/project budgets and additional anti-abuse controls before a public launch.
+
+See `PROGRESS.md` for phase status and `RELEASE_CHECKLIST.md` for deployment gates.

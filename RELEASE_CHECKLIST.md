@@ -83,3 +83,15 @@ The CI PostgreSQL JWT context is simulated. Passing those tests does **not** pro
 - [ ] Manually verify cross-account INSERT, UPDATE and DELETE restrictions through actual Auth/Data API sessions, and test iPhone Safari login, data privacy, and permissions.
 
 **Automated CI does not contact the user's Supabase project.** See `STAGING_SECURITY.md`. No live database has been migrated by this phase.
+
+## 9. Phase 15 — AI request spending guard
+
+- [x] Add persistent per-user AI usage limits (12 meal analyses, 4 transcriptions per UTC hour), atomic database counters and fail-closed HTTP responses.
+- [x] Add disposable PostgreSQL permission/quota tests and AI endpoint regression tests to CI.
+- [ ] Confirm the target AETHR **staging** project and apply `supabase/phase15.sql` in the correct database after the full schema migration review.
+- [ ] Validate the quota RPC and HTTP 429/503 behavior through two real staging accounts, including simultaneous requests.
+- [ ] Audit the intentional `SECURITY DEFINER` public RPC and confirm `anon` has no EXECUTE privilege and private counters are inaccessible.
+- [ ] Configure independent OpenAI spending limits, monitoring, and rate limits at the account/network level; per-user quotas do not protect against mass signup abuse.
+- [ ] Test AI provider failure, network loss and manual-food-entry fallback on iPhone Safari.
+
+**The code will fail closed until its database migration is installed. A passing GitHub build does not mean the live AI feature is operational.**
