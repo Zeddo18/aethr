@@ -23,6 +23,5 @@ select
     has_table_privilege('anon', c.oid, 'SELECT') end as anon_select_granted
 from required r
 left join pg_class c on c.relname = r.table_name
-left join pg_namespace n on n.oid = c.relnamespace and n.nspname='public'
-where c.oid is null or n.oid is not null
+  and c.relnamespace = 'public'::regnamespace and c.relkind in ('r','p')
 order by r.table_name;
