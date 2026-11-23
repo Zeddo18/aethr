@@ -19,9 +19,8 @@ jobs:
       - run: npm ci
       - name: Block high or critical production dependency vulnerabilities
         run: npm audit --omit=dev --audit-level=high
-      - name: Report remaining development dependency advisories (informational)
-        if: always()
-        run: npm audit --audit-level=moderate || true
+      - name: Block moderate or higher vulnerabilities across all dependencies
+        run: npm audit --audit-level=moderate
       - run: npm test
       - run: npx tsc --noEmit
       - run: npm run build
