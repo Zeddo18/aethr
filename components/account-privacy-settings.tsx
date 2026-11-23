@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, type FormEvent } from "react";
 import { Download, Trash2, ShieldCheck } from "lucide-react";
 import { DELETE_CONFIRMATION } from "@/lib/account-security";
 
@@ -45,7 +45,7 @@ export function AccountPrivacySettings() {
     }
   }
 
-  async function deleteAccount(event: React.FormEvent<HTMLFormElement>) {
+  async function deleteAccount(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (deleting || confirmation !== DELETE_CONFIRMATION || !password) return;
     setDeleting(true);
