@@ -24,6 +24,7 @@ Updated November 23, 2026. This file summarizes GitHub implementation; it is **n
 
 - Download an account-owned JSON data export covering all 13 app data tables, including private GPS and workout template details. Queries are scoped to the signed-in user, paginated, and error if incomplete.
 - Delete an account only with current-password re-verification, an exact confirmation phrase, a same-origin request and a server-only Supabase Admin key.
+- Correct the Phase 4 workout-template foreign key using `supabase/phase16.sql` so deleting a user does not leave exercise references that block account removal.
 - Verify the database ON DELETE CASCADE behavior with two synthetic users in disposable PostgreSQL CI.
 - See `ACCOUNT_PRIVACY.md` for setup, limits and requirements. Live account deletion is **not enabled** until the correct deployment and privileged key are verified.
 
