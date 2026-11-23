@@ -108,3 +108,16 @@ The CI PostgreSQL JWT context is simulated. Passing those tests does **not** pro
 - [ ] Verify secure file handling and accessible controls on iPhone Safari.
 
 **No live user was deleted and no privileged deployment key was configured by this development phase.** See `ACCOUNT_PRIVACY.md`.
+
+## 11. Phase 17 — Integration and iPhone readiness
+
+- [x] Add a reproducible local production-build HTTP smoke test for routing, API privacy, installation metadata, icons and security response headers.
+- [x] Ensure the PWA manifest can be fetched while logged out and protected APIs return JSON 401 (not HTML redirects).
+- [x] Add `IPHONE_QA.md` with structured real-device acceptance and staging test steps.
+- [ ] Identify the **correct AETHR** staging Supabase project. Neither connected project's identity is verified as AETHR.
+- [ ] Deploy an isolated, non-production staging instance with correctly configured Auth redirect URLs and **server-only** secrets.
+- [ ] Verify a real two-user staging session: each user can see only their own records, and deleted test accounts cannot sign back in.
+- [ ] Complete real iPhone Safari and Add to Home Screen testing, including camera/microphone/GPS permission denial, offline failures and accessibility.
+- [ ] Review the complete `IPHONE_QA.md` acceptance checklist and record evidence before production release.
+
+**GitHub HTTP checks use localhost and placeholder environment values. They do not substitute for a live Supabase or physical iPhone test.**
