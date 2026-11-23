@@ -2,7 +2,7 @@
 
 Updated November 23, 2026. This file summarizes GitHub implementation; it is **not** a live-production certification.
 
-## Implemented and merged — Phases 1–17
+## Implemented and merged — Phases 1–18
 
 - Phase 1: App foundation and Supabase authentication.
 - Phase 2: Food diary and nutrition logging.
@@ -52,3 +52,12 @@ Updated November 23, 2026. This file summarizes GitHub implementation; it is **n
 5. Complete iPhone Safari, accessibility, privacy, recovery and backup/restore testing.
 
 **GitHub CI passing and code being merged do not mean that live databases or production deployment are configured.**
+
+
+## Phase 19 — Full cross-account write-isolation regression tests
+
+- Added `tests/db/write-isolation.sql` and run it in the disposable PostgreSQL CI database after the existing read/insert RLS tests.
+- Tests cross-account UPDATE and DELETE attempts against all 12 tables with a direct owner key, plus the child template-exercise table using its parent template.
+- Tests ownership reassignment attempts for every `user_id` table and parent-link changes for template exercises, workout sets and GPS route points.
+- Every test runs with two synthetic accounts in rolled-back transactions; it never contacts or changes a real Supabase project.
+- Live Supabase write-policy checks remain pending until a confirmed AETHR staging project and disposable test accounts are available.
