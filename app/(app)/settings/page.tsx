@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import { ReminderSettings } from "@/components/reminder-settings";
+import { AccountPrivacySettings } from "@/components/account-privacy-settings";
 import type { ReminderPreferences } from "@/lib/reminders";
 import { createClient } from "@/lib/supabase/server";
 
@@ -18,10 +19,11 @@ export default async function SettingsPage() {
     reminder_time: String(data.reminder_time).slice(0,5),
     reminder_kind: data.reminder_kind,
   } as ReminderPreferences : defaults;
-  return <>
+  return <div className="space-y-8">
     {error && <p role="status" className="mb-4 rounded-xl border border-line bg-surface p-4 text-sm text-muted">
       Reminder preferences aren't available yet. Apply supabase/phase9.sql to enable saving.
     </p>}
     <ReminderSettings initial={prefs}/>
-  </>;
+    <AccountPrivacySettings/>
+  </div>;
 }
