@@ -61,3 +61,14 @@ A successful GitHub Actions build is one gate, not proof of secure, functioning,
 Production launch remains blocked until: **all Phase 10 checks pass**, database migrations and owner isolation are verified, high/critical security advisories are addressed, AI rate limiting is implemented, data deletion/export workflows exist, and iPhone end-to-end tests pass.
 
 This checklist is an operational artifact, not an assertion that items have been completed.
+
+## 7. Phase 13 — Supabase integration and tenant isolation
+
+- [ ] Require the disposable PostgreSQL RLS test job to pass on the final `main` commit. It covers all 13 data tables, anonymous reads, ownership spoofing, cross-account mutations, and GPS/workout parent references.
+- [ ] Identify the **correct AETHR Supabase project** before any schema changes. Multiple connected projects exist; do not guess the target.
+- [ ] Apply/verify missing SQL migrations in a staging project after backup review.
+- [ ] Run `supabase/verify_security.sql` in the confirmed project as a **read-only** RLS/grants inventory.
+- [ ] Validate real Auth/Data API behavior using two independent authenticated test accounts and one logged-out request.
+- [ ] Re-run Supabase Security Advisor; investigate any warnings, then test iPhone Safari end to end.
+
+The CI PostgreSQL JWT context is simulated. Passing those tests does **not** prove live Supabase Auth, Data API grants, or the project-specific migration state is correct. See `tests/db/README.md`.
