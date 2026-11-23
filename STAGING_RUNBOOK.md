@@ -64,3 +64,10 @@ The workflow is **NOT** triggered by PRs or main pushes, and does not run withou
 See `IPHONE_QA.md`, `STAGING_SECURITY.md`, `ACCOUNT_PRIVACY.md` and `RELEASE_CHECKLIST.md`.
 
 **Passing simulated GitHub CI is not evidence the app has actually connected to Supabase. Passing the opt-in staging workflow will verify read-only Auth and API isolation only, not a public-launch signoff.**
+
+
+## Phase 19 — CI write-isolation coverage
+
+Before any live test environment is available, GitHub CI now runs an additional synthetic PostgreSQL suite that checks cross-account UPDATE/DELETE denial and owner/parent reassignment across all 13 AETHR data tables. This catches regressions in the SQL policy definitions without touching a connected Supabase project.
+
+This is **not** a substitute for real Supabase Data API write tests. The manual staging workflow introduced in Phase 18 currently checks read isolation only. Do not describe Phase 19's CI results as proof that live INSERT/UPDATE/DELETE behavior has been verified.
