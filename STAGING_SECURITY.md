@@ -55,3 +55,7 @@ This is a **read-only** verifier. It does **not** prove UPDATE/DELETE/INSERT own
 Before public release, stage an end-to-end test with two accounts for create/update/delete denial, check RLS grants through the SQL inventory and Security Advisor, and verify login/logout, GPS permission failure, camera/microphone permissions and app installation on iPhone Safari. Review AI cost limits, data export and deletion, and privacy requirements in `RELEASE_CHECKLIST.md`.
 
 **Never run `tests/db/bootstrap.sql`, `tests/db/seed.sql`, or `tests/db/isolation.sql` on a live Supabase project.** They are for disposable CI PostgreSQL only.
+
+## Phase 15 staging prerequisite
+
+If Phase 15 code is deployed without `supabase/phase15.sql` on the **correct** project, AI meal parsing and voice transcription intentionally respond with HTTP 503 (and manual meal logging remains available). Use only a verified AETHR staging project, inspect existing migrations, then run the Phase 15 SQL. Test two-account quotas and the absence of anonymous RPC privileges before using an OpenAI key in public production.
