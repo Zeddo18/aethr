@@ -8,7 +8,8 @@
     "start": "next start",
     "lint": "next lint",
     "test": "vitest run",
-    "verify:staging": "node scripts/verify-supabase-staging.mjs"
+    "verify:staging": "node scripts/verify-supabase-staging.mjs",
+    "verify:smoke": "node scripts/verify-app-smoke.mjs"
   },
   "dependencies": {
     "@supabase/ssr": "^0.5.2",
