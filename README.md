@@ -132,3 +132,8 @@ AETHR includes a **manual-only** GitHub Actions workflow to verify a separately 
 The branch also includes `supabase/verify_staging_readiness.sql`: a read-only 18-check database catalog report for the expected tables, RLS, authenticated SELECT, AI request quota isolation and workout account-deletion foreign key. Its results are tested in disposable CI PostgreSQL.
 
 **Real staging verification is still pending** because no connected Supabase/Vercel project has been identified and prepared as AETHR staging. Review `STAGING_RUNBOOK.md` for setup instructions; do not run AETHR migrations against an unrelated connected project.
+
+
+## Phase 19 — Account write-isolation regression checks
+
+The GitHub Actions database job now tests not only private reads and forged inserts but also cross-account updates, deletes, ownership transfers and parent-link reassignment for the 13 AETHR data tables. These use synthetic users in disposable PostgreSQL transactions and are rolled back automatically. Real Supabase write-policy verification remains pending until the correct AETHR staging environment is configured; see `STAGING_RUNBOOK.md`.
