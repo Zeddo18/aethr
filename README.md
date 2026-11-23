@@ -118,3 +118,9 @@ Open **Settings → Account and privacy** to download a JSON copy of your owned 
 Data exports cover 13 user-owned tables, including personal GPS route coordinates, and **fail rather than silently omit records** when a query fails or the download exceeds safety limits. Treat downloaded files as private. Account deletion is performed by a server-only Supabase Admin client after password reauthentication, and uses database cascade rules to remove owned app rows. **Apply the verified `supabase/phase16.sql` foreign-key fix before enabling deletion; without it, deleting accounts that contain personal workout exercises may fail.**
 
 **Deletion remains disabled (HTTP 503) unless the verified server deployment has a private `SUPABASE_SERVICE_ROLE_KEY`.** Do not expose that key publicly or configure it against an unverified Supabase project. Backups, third-party provider logs and other retention controls still need separate documentation. See `ACCOUNT_PRIVACY.md` for full details, limitations and staging-only verification requirements.
+
+## Phase 17 — Mobile readiness and integration smoke tests
+
+The AETHR CI workflow now boots the **built Next.js app** and checks unauthenticated route protection, JSON API errors, public PWA manifest/icons, mobile viewport settings and security headers via `npm run verify:smoke`. Middleware has also been updated so the install manifest loads without signing in, while signed-out API requests receive HTTP 401 JSON rather than a login HTML redirect.
+
+See `IPHONE_QA.md` for the real iPhone Safari, App Home Screen, Auth, permission and live staging tests. **Those manual acceptance checks are not yet complete; the live AETHR Supabase project has not been identified and no project was modified by this phase.**

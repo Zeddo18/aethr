@@ -49,3 +49,14 @@ jobs:
       - run: npm test
       - run: npx tsc --noEmit
       - run: npm run build
+      - name: Verify production server routes and mobile install readiness
+        run: |
+          set -euo pipefail
+          PORT=3187 npm run start -- --hostname 127.0.0.1 > /tmp/aethr-smoke.log 2>&1 &
+          APP_PID=$!
+          trap 'kill "$APP_PID" 2>/dev/null || true' EXIT
+          if ! AETHR_SMOKE_BASE_URL=http://127.0.0.1:3187 npm run verify:smoke; then
+            echo "Smoke test failed; synthetic local server output follows:"
+            tail -n 90 /tmp/aethr-smoke.log
+            exit 1
+          fi

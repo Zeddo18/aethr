@@ -26,6 +26,17 @@ export async function updateSession(request: NextRequest) {
   const isPublic = PUBLIC_PATHS.some((p) => path === p || path.startsWith(p + "/"));
 
   if (!user && !isPublic) {
+    // API clients need machine-readable authentication errors, not an HTML
+    // sign-in redirect. Protected browser pages still redirect to /login.
+    if (path === "/api" || path.startsWith("/api/")) {
+      return NextResponse.json(
+        { error: "Sign in required." },
+        {
+          status: 401,
+          headers: { "Cache-Control": "private, no-store", "Vary": "Cookie" },
+        },
+      );
+    }
     const url = request.nextUrl.clone();
     url.pathname = "/login";
     return NextResponse.redirect(url);
