@@ -1,0 +1,47 @@
+# Manual, opt-in real staging checks. Never runs on PRs or main pushes.
+# First create a protected GitHub environment named "aethr-staging" and
+# configure its vars and secrets as documented in STAGING_RUNBOOK.md.
+name: Verify AETHR Staging (manual)
+on:
+  workflow_dispatch:
+    inputs:
+      project_ref:
+        description: "20-character, independently verified AETHR STAGING Supabase project ref"
+        type: string
+        required: true
+
+permissions:
+  contents: read
+
+jobs:
+  verify-staging:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    environment: aethr-staging
+    env:
+      AETHR_STAGING_CONFIRM: I_HAVE_VERIFIED_THIS_IS_STAGING
+      AETHR_STAGING_PROJECT_REF: ${{ inputs.project_ref }}
+      AETHR_STAGING_APPROVED_PROJECT_REF: ${{ vars.AETHR_STAGING_APPROVED_PROJECT_REF }}
+      AETHR_STAGING_SUPABASE_URL: ${{ vars.AETHR_STAGING_SUPABASE_URL }}
+      AETHR_STAGING_SUPABASE_PUBLISHABLE_KEY: ${{ vars.AETHR_STAGING_SUPABASE_PUBLISHABLE_KEY }}
+      AETHR_STAGING_APP_VERIFIED: ${{ vars.AETHR_STAGING_APP_VERIFIED }}
+      AETHR_STAGING_APP_URL: ${{ vars.AETHR_STAGING_APP_URL }}
+      AETHR_PRODUCTION_APP_URL: ${{ vars.AETHR_PRODUCTION_APP_URL }}
+      AETHR_TEST_A_EMAIL: ${{ secrets.AETHR_TEST_A_EMAIL }}
+      AETHR_TEST_A_PASSWORD: ${{ secrets.AETHR_TEST_A_PASSWORD }}
+      AETHR_TEST_B_EMAIL: ${{ secrets.AETHR_TEST_B_EMAIL }}
+      AETHR_TEST_B_PASSWORD: ${{ secrets.AETHR_TEST_B_PASSWORD }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Check the separately approved staging project and deployed app
+        run: npm run verify:staging:preflight
+      - name: Verify two real staging accounts and private Data API rows
+        run: npm run verify:staging

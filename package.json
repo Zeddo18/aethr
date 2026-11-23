@@ -9,7 +9,8 @@
     "lint": "next lint",
     "test": "vitest run",
     "verify:staging": "node scripts/verify-supabase-staging.mjs",
-    "verify:smoke": "node scripts/verify-app-smoke.mjs"
+    "verify:smoke": "node scripts/verify-app-smoke.mjs",
+    "verify:staging:preflight": "node scripts/verify-staging-readiness.mjs"
   },
   "dependencies": {
     "@supabase/ssr": "^0.5.2",

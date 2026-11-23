@@ -2,7 +2,7 @@
 
 Updated November 23, 2026. This file summarizes GitHub implementation; it is **not** a live-production certification.
 
-## Implemented and merged — Phases 1–16
+## Implemented and merged — Phases 1–17
 
 - Phase 1: App foundation and Supabase authentication.
 - Phase 2: Food diary and nutrition logging.
@@ -34,6 +34,14 @@ Updated November 23, 2026. This file summarizes GitHub implementation; it is **n
 - Correct middleware so the public install manifest loads without signing in and logged-out APIs return JSON errors rather than HTML redirects.
 - Add `IPHONE_QA.md` with clear staging, permissions, GPS, accessibility and real-iPhone acceptance steps. **Actual physical iPhone tests remain pending** until a staging deployment is available.
 - Do not configure secrets, apply migrations, or deploy to unverified Supabase projects. The GitHub CI server uses placeholder environment variables.
+
+## Phase 18 — Protected real-staging readiness automation
+
+- Added independent, verified Supabase project-ref safeguards and HTTPS-only staging app preflight.
+- Added a **manual-only** GitHub Actions workflow using a protected `aethr-staging` environment. With explicitly approved staging credentials, it runs real Auth + read-only two-account private Data API checks (13 tables), and signed-out app route checks.
+- Added an 18-check read-only schema/RLS/quota/deletion SQL readiness inventory and runs it against the **disposable CI database**; this is not a live-project migration.
+- Current connected project inspection shows no confirmed AETHR database: the active Supabase project has unrelated `decks` / `notes` tables and no migrations, the other project is paused, and no Vercel project named AETHR was found.
+- **The real staging workflow has NOT been run.** No live project, user, deployment or account was changed. See `STAGING_RUNBOOK.md` for setup and unresolved dependencies.
 
 ## Still required before public launch
 

@@ -41,6 +41,11 @@ jobs:
           docker exec -i "$CONTAINER" psql -U postgres -d postgres -X -v ON_ERROR_STOP=1 < tests/db/ai-quota.sql
           docker exec -i "$CONTAINER" psql -U postgres -d postgres -X -v ON_ERROR_STOP=1 < tests/db/account-deletion.sql
           docker exec -i "$CONTAINER" psql -U postgres -d postgres -X -v ON_ERROR_STOP=1 < supabase/verify_security.sql
+          docker exec -i "$CONTAINER" psql -U postgres -d postgres -X -v ON_ERROR_STOP=1 -A -t -F '|' < supabase/verify_staging_readiness.sql > /tmp/aethr-staging-checks.txt
+          echo "AETHR staging catalog checks:"
+          awk -F '|' '{ print $1 ": " $2 " = " ($3 == "t" ? "PASS" : "FAIL") }' /tmp/aethr-staging-checks.txt
+          test "$(wc -l < /tmp/aethr-staging-checks.txt)" -eq 18
+          awk -F '|' '$3 != "t" {failed=1} END {exit failed}' /tmp/aethr-staging-checks.txt
       - run: npm ci
       - name: Block high or critical production dependency vulnerabilities
         run: npm audit --omit=dev --audit-level=high
