@@ -32,12 +32,13 @@ jobs:
           CONTAINER="${{ job.services.postgres.id }}"
           test -n "$CONTAINER"
           docker exec -i "$CONTAINER" psql -U postgres -d postgres -X -v ON_ERROR_STOP=1 < tests/db/bootstrap.sql
-          for file in supabase/schema.sql supabase/phase2.sql supabase/phase4.sql supabase/phase5.sql supabase/phase6.sql supabase/phase8.sql supabase/phase9.sql; do
+          for file in supabase/schema.sql supabase/phase2.sql supabase/phase4.sql supabase/phase5.sql supabase/phase6.sql supabase/phase8.sql supabase/phase9.sql supabase/phase15.sql; do
             echo "Applying CI fixture schema $file"
             docker exec -i "$CONTAINER" psql -U postgres -d postgres -X -v ON_ERROR_STOP=1 < "$file"
           done
           docker exec -i "$CONTAINER" psql -U postgres -d postgres -X -v ON_ERROR_STOP=1 < tests/db/seed.sql
           docker exec -i "$CONTAINER" psql -U postgres -d postgres -X -v ON_ERROR_STOP=1 < tests/db/isolation.sql
+          docker exec -i "$CONTAINER" psql -U postgres -d postgres -X -v ON_ERROR_STOP=1 < tests/db/ai-quota.sql
           docker exec -i "$CONTAINER" psql -U postgres -d postgres -X -v ON_ERROR_STOP=1 < supabase/verify_security.sql
       - run: npm ci
       - name: Block high or critical production dependency vulnerabilities
