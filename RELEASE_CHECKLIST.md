@@ -134,3 +134,14 @@ The CI PostgreSQL JWT context is simulated. Passing those tests does **not** pro
 - [ ] Execute all real iPhone and read/write data isolation tests from `IPHONE_QA.md` before public release.
 
 **Only read-only project metadata was inspected while developing Phase 18. No live migrations, deployments or real-account changes were made.**
+
+
+## 13. Phase 19 — Full RLS write-isolation regression coverage
+
+- [x] Add CI-only UPDATE and DELETE denial checks for all 13 account-owned tables.
+- [x] Test that account A cannot reassign owned rows to account B, including template, workout-session and GPS parent relationships.
+- [x] Run all tests against synthetic users in a disposable PostgreSQL service with explicit table grants and transaction rollback.
+- [ ] Run the separate real Supabase Data API staging workflow once the correct AETHR staging project is identified and configured.
+- [ ] Validate live INSERT, UPDATE and DELETE isolation with two synthetic staging accounts; CI simulation does not certify live Auth/Data API behavior.
+
+**No real account or live database is touched by the Phase 19 CI test.**
