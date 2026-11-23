@@ -121,3 +121,16 @@ The CI PostgreSQL JWT context is simulated. Passing those tests does **not** pro
 - [ ] Review the complete `IPHONE_QA.md` acceptance checklist and record evidence before production release.
 
 **GitHub HTTP checks use localhost and placeholder environment values. They do not substitute for a live Supabase or physical iPhone test.**
+
+## 12. Phase 18 — Verified staging setup and integration
+
+- [x] Add a read-only 18-check migration, grants and RLS schema inventory; check it in disposable PostgreSQL CI.
+- [x] Add fail-closed, HTTPS-only staging app identity and unauthenticated routing preflight with regression tests.
+- [x] Add a manual GitHub Actions workflow limited to `main`, protected `aethr-staging` environment settings, approved project ref and two independent staging-only Auth accounts.
+- [ ] Confirm the real **AETHR** staging Supabase project; the currently connected active project has unrelated tables, and the other is paused.
+- [ ] Establish a distinct HTTPS staging app (no connected Vercel project named AETHR was found). Configure only the correct, independently verified Supabase URL and public key.
+- [ ] Set GitHub environment required reviewers, project-ref variables and test-only credentials as described in `STAGING_RUNBOOK.md`; do not paste them into chat or PRs.
+- [ ] After staging migrations and synthetic fixtures are prepared, manually run **Verify AETHR Staging (manual)** from `main` and capture a passing run.
+- [ ] Execute all real iPhone and read/write data isolation tests from `IPHONE_QA.md` before public release.
+
+**Only read-only project metadata was inspected while developing Phase 18. No live migrations, deployments or real-account changes were made.**
