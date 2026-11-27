@@ -33,11 +33,12 @@ Never blindly replay these files against a different or non-empty project. Revie
 
 ## Verified database state
 
-- 13 public AETHR tables exist, all with RLS enabled.
+- 13 public AETHR tables exist, all with RLS enabled. The anonymous role has no table or sequence privileges on the public schema.
 - All 18 Phase 18 readiness checks pass, including authenticated SELECT grants, Auth, private quota protection, quota RPC grants and account-deletion FK.
 - Signup trigger function has an empty search path and is executable only by `supabase_auth_admin` (besides its owner); it is not callable by `anon`, `authenticated` or `service_role`.
 - `consume_ai_quota(text)` is executable by authenticated users only, not anonymous users. Its SECURITY DEFINER behavior is intentional: it derives identity from `auth.uid()`, accepts no caller-supplied user ID, and uses an empty search path.
 - A synthetic SQL transaction tested the signup profile trigger, account A's private meal read, cross-account UPDATE/DELETE denial, ownership-transfer denial, authenticated quota reservation and anonymous read denial. The transaction rolled back all synthetic users and records.
+- The repository's Phase 19 write-isolation SQL suite was also run against this staging database with two synthetic accounts. Cross-account UPDATE/DELETE and ownership/parent reassignment checks passed across the 13 application tables. All synthetic users and records were cleaned up; final checks confirmed zero remaining test records.
 - The Supabase Security Advisor still reports an informational no-policy notice for the private quota table (intentional: no client grants or schema access) and an authenticated SECURITY DEFINER warning for the quota RPC (intentional and restricted as above).
 - Performance Advisor may report unused indexes while the new staging tables are empty; this is expected before real workload.
 
