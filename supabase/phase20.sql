@@ -49,3 +49,8 @@ create index if not exists activity_route_points_user_id_idx
   on public.activity_route_points(user_id);
 create index if not exists workout_template_exercises_exercise_id_idx
   on public.workout_template_exercises(exercise_id);
+
+-- Private fitness records are not available to the anonymous Data API role.
+-- RLS remains enabled as defense in depth for authenticated sessions.
+revoke all privileges on all tables in schema public from anon;
+revoke all privileges on all sequences in schema public from anon;
