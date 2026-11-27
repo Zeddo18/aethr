@@ -28,11 +28,11 @@ Updated November 27, 2026. This file summarizes GitHub implementation and stagin
 
 - Created a separate Supabase project named `aethr-staging` in Singapore (`ap-southeast-1`), project ref `qdbcdgtdkalashttdagt`. The project is active and healthy. The quoted project creation cost was $0/month.
 - Applied the nine reviewed application SQL files in order: base schema, phases 2, 4, 5, 6, 8, 9, 15 and 16. No existing production or unrelated Supabase project was modified.
-- Applied `supabase/phase20.sql`: restricted the signup trigger function to Supabase Auth's internal role, fixed its search path, optimized profile/meal RLS expressions, and indexed two foreign keys.
+- Applied `supabase/phase20.sql`: restricted the signup trigger function to Supabase Auth's internal role, fixed its search path, optimized profile/meal RLS expressions, indexed two foreign keys, and revoked anonymous table/sequence access.
 - Verified all 13 public application tables have RLS enabled and authenticated SELECT grants; the 18 Phase 18 readiness checks all pass.
-- Ran a rolled-back synthetic two-account SQL test against the actual staging database. Signup profile trigger, private reads, cross-account UPDATE/DELETE denial, ownership-transfer denial, authenticated quota RPC and anonymous read denial passed. All test users and rows were rolled back.
+- Ran the repository's Phase 19 cross-account write-isolation SQL suite against the actual staging database using two synthetic accounts. Cross-account UPDATE/DELETE and ownership-transfer attempts across the 13 application tables passed; all test users and rows were removed. A separate rolled-back test verified signup profile trigger, private reads, authenticated quota RPC and anonymous denial.
 - Remaining: Vercel team/project confirmation, staging deployment and URL, two disposable real Auth accounts, protected GitHub environment variables/secrets, real Data API tests and physical iPhone QA.
-- The security advisor's remaining authenticated SECURITY DEFINER warning is for `public.consume_ai_quota(text)`, intentionally callable by authenticated users only; it has an empty search path, derives the user from `auth.uid()`, accepts no user ID, and is not executable by `anon`. The private quota table's no-policy notice is intentional because it has no client grants or schema access.
+- Verified `anon` has no SELECT privilege on any public AETHR table. The security advisor's remaining authenticated SECURITY DEFINER warning is for `public.consume_ai_quota(text)`, intentionally callable by authenticated users only; it has an empty search path, derives the user from `auth.uid()`, accepts no user ID, and is not executable by `anon`. The private quota table's no-policy notice is intentional because it has no client grants or schema access.
 
 ## Still required before public launch
 
