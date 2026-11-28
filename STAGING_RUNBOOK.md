@@ -1,22 +1,40 @@
-# AETHR Phase 18–20 — Real staging integration runbook
+# AETHR Phase 20–21 — Staging integration runbook
 
-## Current staging environment
+## 1. Verified staging environment
 
-A dedicated Supabase staging project has been created and its database schema installed.
-
+### Supabase
 - Project: `aethr-staging`
 - Region: Singapore (`ap-southeast-1`)
 - Project ref: `qdbcdgtdkalashttdagt`
-- API URL: `https://qdbcdgtdkalashttdagt.supabase.co`
-- Status: active and healthy
+- API origin: `https://qdbcdgtdkalashttdagt.supabase.co`
 - Database: PostgreSQL 17
-- Project creation quote: $0/month
+- Status at last check: active and healthy
 
-This is a separate non-production project. Do not point the production AETHR website or real personal accounts at it.
+This is the dedicated non-production AETHR project. Never use production accounts or personal health/location data for staging tests.
 
-## Applied SQL files
+### Vercel
+- Project: `aethr-staging`
+- Team: `Flash Card for abby` (explicitly approved by the user)
+- Repository: `Zeddo18/aethr`
+- Canonical alias: `https://aethr-staging.vercel.app`
+- Latest verified deployment: `READY`, main commit `ca98d9a1748a1855fab32ac2f6daa18f9d51ca4a`
+- Vercel SSO protection is enabled for non-custom domains. Use only the authorized access path; do not disable or bypass protection.
 
-The following reviewed files were applied in order to the new, initially empty staging project:
+The Vercel project has these two public client settings configured:
+- `NEXT_PUBLIC_SUPABASE_URL` — points to the dedicated staging project.
+- `NEXT_PUBLIC_SUPABASE_ANON_KEY` — contains the staging project's public publishable key.
+
+The project environment listing contained no service-role/secret key or OpenAI key. Do not add either to a `NEXT_PUBLIC_*` variable.
+
+The user reported saving the Supabase Auth Site URL and callback redirect:
+- Site URL: `https://aethr-staging.vercel.app`
+- Redirect URL: `https://aethr-staging.vercel.app/auth/callback`
+
+The available Supabase management integration cannot read back Auth URL Configuration, so this remains user-confirmed rather than independently verified.
+
+## 2. Database schema and security already applied
+
+Applied to the new, initially empty staging project in this order:
 
 1. `supabase/schema.sql`
 2. `supabase/phase2.sql`
@@ -29,64 +47,95 @@ The following reviewed files were applied in order to the new, initially empty s
 9. `supabase/phase16.sql`
 10. `supabase/phase20.sql`
 
-Never blindly replay these files against a different or non-empty project. Review its migration history and schema first.
+Do not replay these migrations blindly. Check migration history and schema first.
 
-## Verified database state
+Verified previously:
+- 13 public application tables exist with RLS enabled.
+- Anonymous table and sequence privileges were revoked.
+- Signup trigger execution and search path were hardened.
+- The authenticated AI quota RPC derives the user from `auth.uid()` and is not executable by `anon`.
+- The Phase 19 SQL write-isolation suite passed against this staging database using synthetic accounts; the synthetic fixtures were cleaned up.
 
-- 13 public AETHR tables exist, all with RLS enabled. The anonymous role has no table or sequence privileges on the public schema.
-- All 18 Phase 18 readiness checks pass, including authenticated SELECT grants, Auth, private quota protection, quota RPC grants and account-deletion FK.
-- Signup trigger function has an empty search path and is executable only by `supabase_auth_admin` (besides its owner); it is not callable by `anon`, `authenticated` or `service_role`.
-- `consume_ai_quota(text)` is executable by authenticated users only, not anonymous users. Its SECURITY DEFINER behavior is intentional: it derives identity from `auth.uid()`, accepts no caller-supplied user ID, and uses an empty search path.
-- A synthetic SQL transaction tested the signup profile trigger, account A's private meal read, cross-account UPDATE/DELETE denial, ownership-transfer denial, authenticated quota reservation and anonymous read denial. The transaction rolled back all synthetic users and records.
-- The repository's Phase 19 write-isolation SQL suite was also run against this staging database with two synthetic accounts. Cross-account UPDATE/DELETE and ownership/parent reassignment checks passed across the 13 application tables. All synthetic users and records were cleaned up; final checks confirmed zero remaining test records.
-- The Supabase Security Advisor still reports an informational no-policy notice for the private quota table (intentional: no client grants or schema access) and an authenticated SECURITY DEFINER warning for the quota RPC (intentional and restricted as above).
-- Performance Advisor may report unused indexes while the new staging tables are empty; this is expected before real workload.
+## 3. Current Phase 21 account state
 
-These checks do not replace two real Supabase Auth sessions and Data API tests.
+Latest read-only query:
+- Auth users: 1
+- Email-confirmed users: 1
+- Users with a recorded sign-in: 0
+- Profiles: 1
+- Meal entries: 0
 
-## Next: deploy a separate staging app
+The existing account is **not confirmed to be a disposable test account**. Do not use it for integration testing until the user confirms it is safe to treat as disposable.
 
-Create a Vercel project connected to `Zeddo18/aethr` in an explicitly approved team. The Vercel connection currently shows a team named `Flash Card for abby`, with no AETHR project. Confirm that this is the intended team before creating anything there.
+The read-only verifier needs two independent Auth accounts and a separate synthetic fixture in every one of its 13 required tables. Creating accounts alone is insufficient.
 
-Set only the following public client configuration for the staging deployment:
+## 4. Protected GitHub environment requirements
 
-- `NEXT_PUBLIC_SUPABASE_URL=https://qdbcdgtdkalashttdagt.supabase.co`
-- `NEXT_PUBLIC_SUPABASE_ANON_KEY` or the modern publishable key for this staging project
+The manual workflow is `.github/workflows/verify-staging.yml`. It runs only on explicit `workflow_dispatch` from `main`, uses the protected GitHub environment `aethr-staging`, and requires the exact project ref as an input.
 
-Never put a Supabase service-role/secret key or `OPENAI_API_KEY` in any `NEXT_PUBLIC_*` variable, browser bundle, test log or GitHub issue. Do not configure account deletion or paid AI usage until their server-side safeguards and global provider budget are separately reviewed.
-
-Configure the staging app's `/auth/callback` redirect URL in Supabase Auth. Use a dedicated staging domain/origin and ensure it is not the production AETHR origin.
-
-## Protected GitHub environment
-
-Create the GitHub environment `aethr-staging`, require reviewers and restrict deployments to `main`.
-
-Environment variables:
+Configure these environment variables in GitHub → Settings → Environments → `aethr-staging`:
 
 - `AETHR_STAGING_APPROVED_PROJECT_REF=qdbcdgtdkalashttdagt`
 - `AETHR_STAGING_SUPABASE_URL=https://qdbcdgtdkalashttdagt.supabase.co`
-- `AETHR_STAGING_SUPABASE_PUBLISHABLE_KEY` — the staging project's publishable/anon key
-- `AETHR_STAGING_APP_URL` — the separate HTTPS staging app origin
+- `AETHR_STAGING_SUPABASE_PUBLISHABLE_KEY` — public publishable key for this staging project
+- `AETHR_STAGING_APP_URL=https://aethr-staging.vercel.app`
 - `AETHR_STAGING_APP_VERIFIED=I_CONFIRMED_THIS_APP_IS_NOT_PRODUCTION`
-- `AETHR_PRODUCTION_APP_URL` — production origin, if one exists
+- `AETHR_PRODUCTION_APP_URL` — production origin, if one is known and independently verified
 
-Environment secrets (two disposable staging-only accounts):
+Configure these **environment secrets** using two disposable staging-only accounts:
 
 - `AETHR_TEST_A_EMAIL`
 - `AETHR_TEST_A_PASSWORD`
 - `AETHR_TEST_B_EMAIL`
 - `AETHR_TEST_B_PASSWORD`
 
-Never paste passwords or private keys into ChatGPT, source code, a PR, or a workflow input.
+Use GitHub's secret input UI. Never paste passwords, private keys or service-role keys into ChatGPT, source code, workflow inputs, PRs or logs. Require environment reviewers if available. The GitHub environment settings could not be inspected through the connected GitHub tools; do not assume these values or secrets already exist.
 
-## Run the protected staging workflow
+## 5. Prepare synthetic fixtures
 
-GitHub → Actions → Verify AETHR Staging (manual) → Run workflow. Select `main` and enter the approved project ref exactly.
+After confirming the two accounts are disposable staging-only accounts, create separate synthetic records for both accounts in every table listed in `lib/staging-security.mjs`:
 
-The workflow performs signed-out app GET checks and read-only two-account Supabase Auth/Data API isolation checks over all 13 tables. It does not perform Data API INSERT/UPDATE/DELETE.
+- `profiles`
+- `meal_entries`
+- `exercises`
+- `workout_templates`
+- `workout_template_exercises`
+- `workout_sessions`
+- `workout_sets`
+- `activities`
+- `activity_route_points`
+- `saved_foods`
+- `saved_recipes`
+- `wellness_logs`
+- `reminder_preferences`
 
-After that workflow passes, separately verify real authenticated write isolation with two disposable accounts. Never use production accounts or real health/location data as test fixtures.
+Use clearly synthetic values only. Respect foreign-key relationships: template exercises must reference each user's own template and exercise; workout sets must reference each user's own session; route points must reference each user's own GPS activity. Never copy real user data.
 
-## Physical iPhone QA and release gates
+## 6. Run the read-only Auth/Data API verifier
 
-Use `IPHONE_QA.md` with a real iPhone and synthetic staging data. Test Safari, Add to Home Screen, accessibility, camera/microphone/location permission denial, network loss, GPS foreground behavior, account export/deletion and backup/restore. Public release remains blocked until these checks and the production project configuration are independently verified.
+1. Open GitHub → Actions → **Verify AETHR Staging (manual)**.
+2. Choose branch `main`.
+3. Enter project ref exactly: `qdbcdgtdkalashttdagt`.
+4. Run only after the protected environment variables/secrets and both test accounts are configured.
+
+The workflow:
+- Validates explicit staging identity, HTTPS app origin, public key and separate test accounts.
+- Performs staging app GET checks.
+- Signs in both accounts with password authentication and independently calls `getUser()`.
+- Checks that each account sees its own fixture, cannot see the other account's fixture, and anonymous clients cannot see either account's fixture across all 13 tables.
+- Signs out the two temporary local sessions in a `finally` block.
+- Does **not** insert, update or delete application rows.
+
+A missing fixture is an inconclusive failure, not an RLS pass.
+
+## 7. Separate write-policy and privacy checks
+
+The read-only Data API workflow does not test INSERT/UPDATE/DELETE. Phase 19's disposable PostgreSQL suite and the Phase 20 staging SQL execution already exercised database write isolation, but real Authenticated Data API write behavior remains a separate Phase 21 gate.
+
+Run any real Data API write tests only with disposable staging users and synthetic fixtures. Verify denied attempts and re-read the unaffected owner's records. Account deletion is destructive: use only a separately created disposable staging account and verify cleanup. Never run deletion or destructive tests against production or a user's real account.
+
+## 8. Physical iPhone QA and release gates
+
+Use `IPHONE_QA.md` with a physical iPhone and synthetic staging data. Test Safari, Add to Home Screen, accessibility, camera/microphone/location permission denial, network loss, foreground-only GPS, export/deletion and backup/restore.
+
+Public release remains blocked until Phase 21, physical iPhone QA, AI provider global budgets, privacy review and production configuration review are complete.
