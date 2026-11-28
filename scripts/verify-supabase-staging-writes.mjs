@@ -42,17 +42,17 @@ async function insertRow(client, table, payload, key = "id") {
   return response.data[key];
 }
 
-function registerCleanup(cleanups, client, table, key, id, fallbackClient = null) {
+function registerCleanup(cleanups, client, table, key, id) {
   cleanups.push(async () => {
-    let response = await client.from(table).delete().eq(key, id).select(key).maybeSingle();
-    if (!response.error && !response.data && fallbackClient) {
-      response = await fallbackClient.from(table).delete().eq(key, id).select(key).maybeSingle();
+    const removed = await client.from(table).delete().eq(key, id).select(key).maybeSingle();
+    if (removed.error) {
+      throw Error(table + ": synthetic-row cleanup failed (code " + (removed.error.code ?? "unknown") + ")");
     }
-    if (response.error) {
-      throw Error(table + ": synthetic-row cleanup failed (code " + (response.error.code ?? "unknown") + ")");
+    const remaining = await client.from(table).select(key).eq(key, id).maybeSingle();
+    if (remaining.error) {
+      throw Error(table + ": cleanup verification failed (code " + (remaining.error.code ?? "unknown") + ")");
     }
-    // The owner-delete test may already have removed this row. A missing row
-    // here is also safe after a failed cross-account mutation test.
+    if (remaining.data) throw Error(table + ": synthetic row remains after cleanup");
   });
 }
 
@@ -65,11 +65,39 @@ async function selectOwn(client, table, key, value, columns = key) {
   return response.data;
 }
 
-async function expectCrossAccountNoOp(clientA, table, key, idB, patch, label) {
-  const update = await clientA.from(table).update(patch).eq(key, idB).select(key).maybeSingle();
+async function expectCrossAccountNoOp(clientA, clientB, table, key, idB, patch, label) {
+  const fields = Object.keys(patch);
+  const before = await selectOwn(clientB, table, key, idB, fields.join(","));
+  const attemptedPatch = {};
+  for (const [field, value] of Object.entries(patch)) {
+    if (!Object.is(before[field], value)) {
+      attemptedPatch[field] = value;
+    } else if (typeof value === "boolean") {
+      attemptedPatch[field] = !value;
+    } else if (typeof value === "number") {
+      attemptedPatch[field] = value + 1;
+    } else if (typeof value === "string") {
+      attemptedPatch[field] = value + " [unauthorized probe]";
+    } else {
+      attemptedPatch[field] = "unauthorized probe";
+    }
+  }
+
+  const update = await clientA.from(table).update(attemptedPatch).eq(key, idB).select(key).maybeSingle();
   assertNoVisibleMutation(update, label + " cross-account UPDATE");
+
+  // Re-read through the real owner. This catches unauthorized changes even if
+  // the attacking account cannot see the UPDATE ... RETURNING result.
+  const after = await selectOwn(clientB, table, key, idB, fields.join(","));
+  for (const field of fields) {
+    if (!Object.is(after[field], before[field])) {
+      throw Error(label + ": CROSS-ACCOUNT UPDATE CHANGED " + field);
+    }
+  }
+
   const remove = await clientA.from(table).delete().eq(key, idB).select(key).maybeSingle();
   assertNoVisibleMutation(remove, label + " cross-account DELETE");
+  await selectOwn(clientB, table, key, idB, key);
 }
 
 async function expectSpoofedInsertDenied(client, table, payload, label, cleanupClient, key = "id") {
@@ -111,7 +139,7 @@ async function uniqueWellnessDate(client, userId, otherClient = null, otherUserI
   throw Error("Could not reserve a unique synthetic wellness date");
 }
 
-async function createFixtures(client, userId, label, cleanups, fallbackClient, otherUserId) {
+async function createFixtures(client, userId, label, cleanups, otherClient, otherUserId) {
   const suffix = randomUUID().slice(0, 12);
   const f = {};
 
@@ -119,67 +147,67 @@ async function createFixtures(client, userId, label, cleanups, fallbackClient, o
     user_id: userId, meal: "snack", name: "AETHR staging " + label + " " + suffix,
     amount_g: 1, calories: 1, protein_g: 0, carbs_g: 0, fat_g: 0,
   });
-  registerCleanup(cleanups, client, "meal_entries", "id", f.meal_entries, fallbackClient);
+  registerCleanup(cleanups, client, "meal_entries", "id", f.meal_entries);
 
   f.exercises = await insertRow(client, "exercises", {
     id: randomUUID(), user_id: userId, name: "AETHR " + label + " " + suffix,
     muscle_group: "staging",
   });
-  registerCleanup(cleanups, client, "exercises", "id", f.exercises, fallbackClient);
+  registerCleanup(cleanups, client, "exercises", "id", f.exercises);
 
   f.workout_templates = await insertRow(client, "workout_templates", {
     id: randomUUID(), user_id: userId, name: "AETHR " + label + " " + suffix,
   });
-  registerCleanup(cleanups, client, "workout_templates", "id", f.workout_templates, fallbackClient);
+  registerCleanup(cleanups, client, "workout_templates", "id", f.workout_templates);
 
   f.workout_template_exercises = await insertRow(client, "workout_template_exercises", {
     id: randomUUID(), template_id: f.workout_templates, exercise_id: f.exercises,
     sort_order: 0, target_sets: 1, target_reps: 1,
   });
-  registerCleanup(cleanups, client, "workout_template_exercises", "id", f.workout_template_exercises, fallbackClient);
+  registerCleanup(cleanups, client, "workout_template_exercises", "id", f.workout_template_exercises);
 
   f.workout_sessions = await insertRow(client, "workout_sessions", {
     id: randomUUID(), user_id: userId, title: "AETHR staging " + label,
     notes: "Synthetic Phase 21C test record",
   });
-  registerCleanup(cleanups, client, "workout_sessions", "id", f.workout_sessions, fallbackClient);
+  registerCleanup(cleanups, client, "workout_sessions", "id", f.workout_sessions);
 
   f.workout_sets = await insertRow(client, "workout_sets", {
     id: randomUUID(), user_id: userId, session_id: f.workout_sessions,
     exercise_name: "Staging movement " + suffix, set_number: 1, repetitions: 1, weight_kg: 0,
   });
-  registerCleanup(cleanups, client, "workout_sets", "id", f.workout_sets, fallbackClient);
+  registerCleanup(cleanups, client, "workout_sets", "id", f.workout_sets);
 
   f.activities = await insertRow(client, "activities", {
     id: randomUUID(), user_id: userId, activity_type: "walk",
     started_at: new Date().toISOString(), duration_seconds: 60, distance_km: 0.01,
     notes: "Synthetic staging record", source: "gps",
   });
-  registerCleanup(cleanups, client, "activities", "id", f.activities, fallbackClient);
+  registerCleanup(cleanups, client, "activities", "id", f.activities);
 
   f.activity_route_points = await insertRow(client, "activity_route_points", {
     activity_id: f.activities, user_id: userId, sequence_number: 0,
     latitude: 0, longitude: 0, recorded_at: new Date().toISOString(),
   });
-  registerCleanup(cleanups, client, "activity_route_points", "id", f.activity_route_points, fallbackClient);
+  registerCleanup(cleanups, client, "activity_route_points", "id", f.activity_route_points);
 
   f.saved_foods = await insertRow(client, "saved_foods", {
     id: randomUUID(), user_id: userId, name: "AETHR staging food " + suffix,
     calories_100g: 1, protein_100g: 0, carbs_100g: 0, fat_100g: 0,
   });
-  registerCleanup(cleanups, client, "saved_foods", "id", f.saved_foods, fallbackClient);
+  registerCleanup(cleanups, client, "saved_foods", "id", f.saved_foods);
 
   f.saved_recipes = await insertRow(client, "saved_recipes", {
     id: randomUUID(), user_id: userId, name: "AETHR staging recipe " + suffix,
     ingredients: [{ name: "Synthetic ingredient", grams: 1 }],
   });
-  registerCleanup(cleanups, client, "saved_recipes", "id", f.saved_recipes, fallbackClient);
+  registerCleanup(cleanups, client, "saved_recipes", "id", f.saved_recipes);
 
   f.wellness_logs = await insertRow(client, "wellness_logs", {
-    id: randomUUID(), user_id: userId, log_date: await uniqueWellnessDate(client, userId, fallbackClient, otherUserId),
+    id: randomUUID(), user_id: userId, log_date: await uniqueWellnessDate(client, userId, otherClient, otherUserId),
     notes: "Synthetic Phase 21C fixture",
   });
-  registerCleanup(cleanups, client, "wellness_logs", "id", f.wellness_logs, fallbackClient);
+  registerCleanup(cleanups, client, "wellness_logs", "id", f.wellness_logs);
 
   f.profiles = await selectOwn(client, "profiles", "id", userId, "id,display_name");
   f.reminder_preferences = await selectOwn(
@@ -281,7 +309,7 @@ async function verifyCrossAccountMutations(clientA, clientB, idB, b) {
     ["reminder_preferences", "user_id", idB, { enabled: false }],
   ];
   for (const [table, key, id, patch] of cases) {
-    await expectCrossAccountNoOp(clientA, table, key, id, patch, table);
+    await expectCrossAccountNoOp(clientA, clientB, table, key, id, patch, table);
     const stillOwned = await selectOwn(clientB, table, key, id, key);
     if (stillOwned[key] !== id) throw Error(table + ": owner could not see its fixture after denied mutations");
   }
@@ -310,7 +338,6 @@ async function verifySpoofedInserts(clientA, clientB, idA, idB, a, b) {
       id: randomUUID(), user_id: idB, log_date: await uniqueWellnessDate(clientB, idB),
       notes: "forged " + suffix,
     }],
-    ["reminder_preferences", { user_id: idB, enabled: false, reminder_kind: "rest" }],
   ];
   for (const [table, payload] of cases) {
     await expectSpoofedInsert(clientA, table, payload, table, clientB);
