@@ -52,6 +52,10 @@ jobs:
         run: npm audit --omit=dev --audit-level=high
       - name: Block moderate or higher vulnerabilities across all dependencies
         run: npm audit --audit-level=moderate
+      - name: Check authenticated staging verifier syntax
+        run: |
+          node --check scripts/verify-supabase-staging-writes.mjs
+          node --check lib/staging-write-security.mjs
       - run: npm test
       - run: npx tsc --noEmit
       - run: npm run build
