@@ -82,6 +82,22 @@ Configure these environment variables in GitHub → Settings → Environments �
 - `AETHR_STAGING_APP_VERIFIED=I_CONFIRMED_THIS_APP_IS_NOT_PRODUCTION`
 - `AETHR_PRODUCTION_APP_URL` — production origin, if one is known and independently verified
 
+Also configure this **environment secret**:
+
+- `VERCEL_AUTOMATION_BYPASS_SECRET` — a project-scoped Vercel Protection Bypass for Automation secret used only by the staging preflight's GET requests.
+
+### Create the Vercel automation secret
+
+The staging Vercel project has SSO protection enabled. GitHub Actions cannot complete the unauthenticated HTTP preflight through that protection unless it presents an approved automation bypass. Keep SSO protection enabled; do not make the staging site public.
+
+1. In Vercel, open the `aethr-staging` project → Settings → Deployment Protection.
+2. Under **Protection Bypass for Automation**, create a secret with a note such as `AETHR staging GitHub Actions preflight`.
+3. Copy the generated secret once and add it to GitHub → Settings → Environments → `aethr-staging` as the `VERCEL_AUTOMATION_BYPASS_SECRET` environment secret.
+4. Do not paste it into ChatGPT, a PR, source code, workflow inputs or logs.
+5. Revoke it in Vercel and remove the GitHub environment secret when automated preflight access is no longer needed. Rotate it if exposed.
+
+This token can bypass deployment protection across the Vercel project until revoked. Because this is a dedicated staging project, scope the token to this project only and store it only in the protected GitHub environment. The preflight sends it as the `x-vercel-protection-bypass` HTTP header to the validated staging origin; it is not added to URLs or logged.
+
 Configure these **environment secrets** using two disposable staging-only accounts:
 
 - `AETHR_TEST_A_EMAIL`

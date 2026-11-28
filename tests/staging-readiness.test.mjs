@@ -116,6 +116,35 @@ describe("Phase 18 non-mutating deployed app smoke checks", () => {
     expect(calls.every(c => c.url.origin === "https://staging.example.test")).toBe(true);
   });
 
+  it("sends an optional Vercel protection bypass only as a header to staging GET requests", async () => {
+    const { fetchImpl, calls } = mockResponses();
+    const secret = "test-only-vercel-bypass-secret";
+    await checkStagingApp("https://staging.example.test", fetchImpl, {
+      protectionBypassSecret: secret,
+    });
+    expect(calls).toHaveLength(4);
+    for (const call of calls) {
+      expect(call.options.headers["x-vercel-protection-bypass"]).toBe(secret);
+      // The application search request legitimately carries q=rice; only the
+      // bypass credential itself must never appear in the URL.
+      expect(call.url.href).not.toContain(secret);
+    }
+    expect(calls[3].url.search).toBe("?q=rice");
+  });
+
+  it("does not send a Vercel bypass header when no secret is configured", async () => {
+    const { fetchImpl, calls } = mockResponses();
+    await checkStagingApp("https://staging.example.test", fetchImpl);
+    expect(calls.every(call => !("x-vercel-protection-bypass" in call.options.headers))).toBe(true);
+  });
+
+  it("rejects malformed bypass header values without echoing them", async () => {
+    const secret = "do-not-log\r\nInjected: true";
+    await expect(checkStagingApp("https://staging.example.test", fetch, {
+      protectionBypassSecret: secret,
+    })).rejects.toThrow("Invalid Vercel automation bypass secret configuration");
+  });
+
   it("fails when private dashboard data is exposed while logged out", async () => {
     const { fetchImpl } = mockResponses({ "/dashboard": new Response("Dashboard", { status: 200 }) });
     await expect(checkStagingApp("https://staging.example.test", fetchImpl))

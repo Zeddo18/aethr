@@ -56,7 +56,7 @@ Updated November 28, 2026. This file summarizes verified repository and staging 
 
 ### Remaining gates
 1. Confirm or create **two disposable staging-only Auth accounts**. Do not use real personal accounts or personal health data.
-2. Configure the protected GitHub environment `aethr-staging` with the non-secret staging identity variables and four account credential secrets listed in `STAGING_RUNBOOK.md`. The GitHub environment's current settings could not be inspected with the available integration, so they remain unverified.
+2. Configure the protected GitHub environment `aethr-staging` with the non-secret staging identity variables, the Vercel automation bypass secret, and four account credential secrets listed in `STAGING_RUNBOOK.md`. The GitHub environment's current settings could not be inspected with the available integration, so they remain unverified. Keep Vercel SSO protection enabled.
 3. Seed separate synthetic fixtures for both users in all 13 application tables. The current Auth count alone is not enough for the read-only verifier to pass.
 4. Run the manual `Verify AETHR Staging (manual)` workflow on `main` with the exact approved project ref. It signs in both accounts, independently verifies both sessions, checks own/cross-account/anonymous SELECT visibility and signs out locally. It does not mutate application rows.
 5. Separately complete real Data API write-policy verification using disposable fixtures. Do not run destructive tests on real or production accounts.
