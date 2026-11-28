@@ -58,14 +58,12 @@ Verified previously:
 
 ## 3. Current Phase 21 account state
 
-Latest read-only query:
-- Auth users: 1
-- Email-confirmed users: 1
-- Users with a recorded sign-in: 0
-- Profiles: 1
-- Meal entries: 0
+Latest read-only inspection:
+- Auth users: 3
+- Two recently created accounts each had one row in all 13 application tables.
+- A third account had no application fixtures.
 
-The existing account is **not confirmed to be a disposable test account**. Do not use it for integration testing until the user confirms it is safe to treat as disposable.
+The two populated accounts appear to have synthetic test fixtures, but their identities have **not** been matched to the protected GitHub environment secrets. Do not assume they are the intended disposable test accounts. Confirm that the GitHub secrets point only to dedicated staging accounts before running either verifier.
 
 The read-only verifier needs two independent Auth accounts and a separate synthetic fixture in every one of its 13 required tables. Creating accounts alone is insufficient.
 
@@ -142,13 +140,28 @@ The workflow:
 - Signs out the two temporary local sessions in a `finally` block.
 - Does **not** insert, update or delete application rows.
 
-A missing fixture is an inconclusive failure, not an RLS pass.
+A missing fixture is an inconclusive failure, not an RLS pass. After this read-only step passes, the same workflow runs the Phase 21C authenticated write-policy verifier.
 
-## 7. Separate write-policy and privacy checks
+## 7. Phase 21C authenticated Data API write-policy checks
 
-The read-only Data API workflow does not test INSERT/UPDATE/DELETE. Phase 19's disposable PostgreSQL suite and the Phase 20 staging SQL execution already exercised database write isolation, but real Authenticated Data API write behavior remains a separate Phase 21 gate.
+The manual workflow now runs `npm run verify:staging:writes` after the read-only verifier passes. It uses the same two protected staging-account secrets and the public/publishable key; it never uses a service-role key or direct SQL connection.
 
-Run any real Data API write tests only with disposable staging users and synthetic fixtures. Verify denied attempts and re-read the unaffected owner's records. Account deletion is destructive: use only a separately created disposable staging account and verify cleanup. Never run deletion or destructive tests against production or a user's real account.
+The write verifier creates unique synthetic records through the authenticated Data API for both accounts, then checks:
+
+- Owner INSERT succeeds for writable tables.
+- Cross-account INSERTs with forged owner IDs return PostgreSQL RLS error `42501`.
+- Child records cannot reference another account's workout template, private exercise, workout session or GPS activity.
+- Owners can UPDATE tables that currently have UPDATE policies.
+- Tables without an UPDATE policy remain non-updatable even by their owner.
+- Attempts to reassign a record's `user_id` to the other account return `42501`.
+- Cross-account UPDATE and DELETE operations return no rows, and the real owner can still read the synthetic fixture.
+- Owners can DELETE the temporary records created by the verifier.
+
+The current schema intentionally has no UPDATE policy for `workout_template_exercises`, `workout_sets`, `activity_route_points`, `saved_foods` or `saved_recipes`; the test confirms those owner updates remain blocked. Profile creation is handled by the Auth signup trigger, so the script verifies profile ownership and updates the synthetic test profile instead of trying to create a duplicate. It also temporarily changes Account A's profile display name and reminder preferences, then restores their original values in the cleanup path.
+
+The script does not delete Auth users, existing profiles or existing reminder-preference rows. It removes the temporary application records it creates and fails if cleanup requests return database errors. If a workflow is forcibly cancelled, inspect the two staging accounts' profile/reminder settings and synthetic records before rerunning.
+
+Run only with two accounts confirmed to be disposable staging-only accounts. Never run against production or accounts containing real personal data.
 
 ## 8. Physical iPhone QA and release gates
 
