@@ -100,7 +100,7 @@ async function expectCrossAccountNoOp(clientA, clientB, table, key, idB, patch, 
   await selectOwn(clientB, table, key, idB, key);
 }
 
-async function expectSpoofedInsertDenied(client, table, payload, label, cleanupClient, key = "id") {
+async function expectSpoofedInsertDenied(client, table, payload, label, cleanupClient, key = "id", cleanupUnexpected = null) {
   const response = await client.from(table).insert(payload).select(key).maybeSingle();
   try {
     assertRlsDenial(response, label + " forged INSERT");
@@ -108,9 +108,13 @@ async function expectSpoofedInsertDenied(client, table, payload, label, cleanupC
     // If a regression allowed the row, immediately ask its resulting owner to
     // remove the synthetic row before surfacing the failure.
     if (!response.error && response.data?.[key] !== undefined) {
-      const cleanup = await cleanupClient.from(table).delete().eq(key, response.data[key]).select(key).maybeSingle();
-      if (cleanup.error || !cleanup.data) {
-        throw Error(label + ": RLS BYPASS and synthetic row cleanup also failed");
+      if (cleanupUnexpected) {
+        await cleanupUnexpected();
+      } else {
+        const cleanup = await cleanupClient.from(table).delete().eq(key, response.data[key]).select(key).maybeSingle();
+        if (cleanup.error || !cleanup.data) {
+          throw Error(label + ": RLS BYPASS and synthetic row cleanup also failed");
+        }
       }
     }
     throw error;
@@ -348,7 +352,13 @@ async function verifySpoofedInserts(clientA, clientB, idA, idB, a, b) {
   await expectSpoofedInsert(clientA, "workout_sets", {
     id: randomUUID(), user_id: idB, session_id: a.workout_sessions,
     exercise_name: "Forged owner " + suffix, set_number: 98, repetitions: 1, weight_kg: 0,
-  }, "workout_sets forged user_id", clientB);
+  }, "workout_sets forged user_id", clientB, "id", async () => {
+    const cleanup = await clientA.from("workout_sessions").delete()
+      .eq("id", a.workout_sessions).select("id").maybeSingle();
+    if (cleanup.error || !cleanup.data) {
+      throw Error("workout_sets forged user_id: failed to cascade-clean the synthetic parent session");
+    }
+  });
 
   await expectSpoofedInsert(clientA, "activity_route_points", {
     activity_id: a.activities, user_id: idB, sequence_number: 2998,
@@ -370,7 +380,13 @@ async function verifySpoofedInserts(clientA, clientB, idA, idB, a, b) {
   await expectSpoofedInsert(clientA, "workout_sets", {
     id: randomUUID(), user_id: idA, session_id: b.workout_sessions,
     exercise_name: "Forged " + suffix, set_number: 99, repetitions: 1, weight_kg: 0,
-  }, "workout_sets parent-session ownership", clientA);
+  }, "workout_sets parent-session ownership", clientA, "id", async () => {
+    const cleanup = await clientB.from("workout_sessions").delete()
+      .eq("id", b.workout_sessions).select("id").maybeSingle();
+    if (cleanup.error || !cleanup.data) {
+      throw Error("workout_sets parent-session ownership: failed to cascade-clean the synthetic parent session");
+    }
+  });
 
   await expectSpoofedInsert(clientA, "activity_route_points", {
     activity_id: b.activities, user_id: idA, sequence_number: 2999,
