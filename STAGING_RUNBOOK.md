@@ -154,8 +154,8 @@ The write verifier creates unique synthetic records through the authenticated Da
 - Owners can UPDATE tables that currently have UPDATE policies.
 - Tables without an UPDATE policy remain non-updatable even by their owner.
 - Attempts to reassign a record's `user_id` to the other account return `42501`.
-- Cross-account UPDATE and DELETE operations return no rows, and the real owner can still read the synthetic fixture.
-- Owners can DELETE the temporary records created by the verifier.
+- Cross-account UPDATE and DELETE operations return no rows. After each attempted UPDATE, the verifier re-reads the exact target fields through the real owner and confirms they are unchanged; this catches hidden mutations even if the attacking client cannot see a RETURNING row.
+- Owners can DELETE the temporary records created by the verifier. Final cleanup independently re-reads every temporary row and fails if any synthetic record remains.
 
 The current schema intentionally has no UPDATE policy for `workout_template_exercises`, `workout_sets`, `activity_route_points`, `saved_foods` or `saved_recipes`; the test confirms those owner updates remain blocked. Profile creation is handled by the Auth signup trigger, so the script verifies profile ownership and updates the synthetic test profile instead of trying to create a duplicate. It also temporarily changes Account A's profile display name and reminder preferences, then restores their original values in the cleanup path.
 
