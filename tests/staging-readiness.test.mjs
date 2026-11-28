@@ -125,9 +125,11 @@ describe("Phase 18 non-mutating deployed app smoke checks", () => {
     expect(calls).toHaveLength(4);
     for (const call of calls) {
       expect(call.options.headers["x-vercel-protection-bypass"]).toBe(secret);
-      expect(call.url.search).toBe("");
+      // The application search request legitimately carries q=rice; only the
+      // bypass credential itself must never appear in the URL.
       expect(call.url.href).not.toContain(secret);
     }
+    expect(calls[3].url.search).toBe("?q=rice");
   });
 
   it("does not send a Vercel bypass header when no secret is configured", async () => {
