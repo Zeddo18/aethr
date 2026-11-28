@@ -137,7 +137,7 @@ describe("Phase 18 non-mutating deployed app smoke checks", () => {
   });
 
   it("rejects malformed bypass header values without echoing them", async () => {
-    const secret = "do-not-log\\r\\nInjected: true";
+    const secret = "do-not-log\r\nInjected: true";
     await expect(checkStagingApp("https://staging.example.test", fetch, {
       protectionBypassSecret: secret,
     })).rejects.toThrow("Invalid Vercel automation bypass secret configuration");
