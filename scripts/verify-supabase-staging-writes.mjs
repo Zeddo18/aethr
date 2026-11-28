@@ -316,6 +316,18 @@ async function verifySpoofedInserts(clientA, clientB, idA, idB, a, b) {
     await expectSpoofedInsert(clientA, table, payload, table, clientB);
   }
 
+  // Also test the direct owner column on these child tables independently
+  // from their parent-reference checks below.
+  await expectSpoofedInsert(clientA, "workout_sets", {
+    id: randomUUID(), user_id: idB, session_id: a.workout_sessions,
+    exercise_name: "Forged owner " + suffix, set_number: 98, repetitions: 1, weight_kg: 0,
+  }, "workout_sets forged user_id", clientB);
+
+  await expectSpoofedInsert(clientA, "activity_route_points", {
+    activity_id: a.activities, user_id: idB, sequence_number: 2998,
+    latitude: 0, longitude: 0, recorded_at: new Date().toISOString(),
+  }, "activity_route_points forged user_id", clientB);
+
   // Relationship tables inherit ownership from their parent, not a user_id
   // column. Test both foreign-parent boundaries with otherwise valid records.
   await expectSpoofedInsert(clientA, "workout_template_exercises", {
