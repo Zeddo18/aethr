@@ -48,7 +48,11 @@ function registerCleanup(cleanups, client, table, key, id, fallbackClient = null
     if (!response.error && !response.data && fallbackClient) {
       response = await fallbackClient.from(table).delete().eq(key, id).select(key).maybeSingle();
     }
-    assertSingleRow(response, table + " synthetic-row cleanup");
+    if (response.error) {
+      throw Error(table + ": synthetic-row cleanup failed (code " + (response.error.code ?? "unknown") + ")");
+    }
+    // The owner-delete test may already have removed this row. A missing row
+    // here is also safe after a failed cross-account mutation test.
   });
 }
 
@@ -85,12 +89,19 @@ async function expectSpoofedInsertDenied(client, table, payload, label, cleanupC
   }
 }
 
-async function uniqueWellnessDate(client, userId) {
+async function uniqueWellnessDate(client, userId, otherClient = null, otherUserId = null) {
   const response = failOnError(
     await client.from("wellness_logs").select("log_date").eq("user_id", userId),
     "wellness_logs existing dates",
   );
   const occupied = new Set((response.data ?? []).map((row) => row.log_date));
+  if (otherClient && otherUserId) {
+    const other = failOnError(
+      await otherClient.from("wellness_logs").select("log_date").eq("user_id", otherUserId),
+      "wellness_logs other-account dates",
+    );
+    for (const row of other.data ?? []) occupied.add(row.log_date);
+  }
   const base = Date.UTC(2100, 0, 1);
   const start = Math.floor(Math.random() * 30000);
   for (let offset = 0; offset < 40000; offset += 1) {
@@ -100,7 +111,7 @@ async function uniqueWellnessDate(client, userId) {
   throw Error("Could not reserve a unique synthetic wellness date");
 }
 
-async function createFixtures(client, userId, label, cleanups) {
+async function createFixtures(client, userId, label, cleanups, fallbackClient, otherUserId) {
   const suffix = randomUUID().slice(0, 12);
   const f = {};
 
@@ -108,67 +119,67 @@ async function createFixtures(client, userId, label, cleanups) {
     user_id: userId, meal: "snack", name: "AETHR staging " + label + " " + suffix,
     amount_g: 1, calories: 1, protein_g: 0, carbs_g: 0, fat_g: 0,
   });
-  registerCleanup(cleanups, client, "meal_entries", "id", f.meal_entries);
+  registerCleanup(cleanups, client, "meal_entries", "id", f.meal_entries, fallbackClient);
 
   f.exercises = await insertRow(client, "exercises", {
     id: randomUUID(), user_id: userId, name: "AETHR " + label + " " + suffix,
     muscle_group: "staging",
   });
-  registerCleanup(cleanups, client, "exercises", "id", f.exercises);
+  registerCleanup(cleanups, client, "exercises", "id", f.exercises, fallbackClient);
 
   f.workout_templates = await insertRow(client, "workout_templates", {
     id: randomUUID(), user_id: userId, name: "AETHR " + label + " " + suffix,
   });
-  registerCleanup(cleanups, client, "workout_templates", "id", f.workout_templates);
+  registerCleanup(cleanups, client, "workout_templates", "id", f.workout_templates, fallbackClient);
 
   f.workout_template_exercises = await insertRow(client, "workout_template_exercises", {
     id: randomUUID(), template_id: f.workout_templates, exercise_id: f.exercises,
     sort_order: 0, target_sets: 1, target_reps: 1,
   });
-  registerCleanup(cleanups, client, "workout_template_exercises", "id", f.workout_template_exercises);
+  registerCleanup(cleanups, client, "workout_template_exercises", "id", f.workout_template_exercises, fallbackClient);
 
   f.workout_sessions = await insertRow(client, "workout_sessions", {
     id: randomUUID(), user_id: userId, title: "AETHR staging " + label,
     notes: "Synthetic Phase 21C test record",
   });
-  registerCleanup(cleanups, client, "workout_sessions", "id", f.workout_sessions);
+  registerCleanup(cleanups, client, "workout_sessions", "id", f.workout_sessions, fallbackClient);
 
   f.workout_sets = await insertRow(client, "workout_sets", {
     id: randomUUID(), user_id: userId, session_id: f.workout_sessions,
     exercise_name: "Staging movement " + suffix, set_number: 1, repetitions: 1, weight_kg: 0,
   });
-  registerCleanup(cleanups, client, "workout_sets", "id", f.workout_sets);
+  registerCleanup(cleanups, client, "workout_sets", "id", f.workout_sets, fallbackClient);
 
   f.activities = await insertRow(client, "activities", {
     id: randomUUID(), user_id: userId, activity_type: "walk",
     started_at: new Date().toISOString(), duration_seconds: 60, distance_km: 0.01,
     notes: "Synthetic staging record", source: "gps",
   });
-  registerCleanup(cleanups, client, "activities", "id", f.activities);
+  registerCleanup(cleanups, client, "activities", "id", f.activities, fallbackClient);
 
   f.activity_route_points = await insertRow(client, "activity_route_points", {
     activity_id: f.activities, user_id: userId, sequence_number: 0,
     latitude: 0, longitude: 0, recorded_at: new Date().toISOString(),
   });
-  registerCleanup(cleanups, client, "activity_route_points", "id", f.activity_route_points);
+  registerCleanup(cleanups, client, "activity_route_points", "id", f.activity_route_points, fallbackClient);
 
   f.saved_foods = await insertRow(client, "saved_foods", {
     id: randomUUID(), user_id: userId, name: "AETHR staging food " + suffix,
     calories_100g: 1, protein_100g: 0, carbs_100g: 0, fat_100g: 0,
   });
-  registerCleanup(cleanups, client, "saved_foods", "id", f.saved_foods);
+  registerCleanup(cleanups, client, "saved_foods", "id", f.saved_foods, fallbackClient);
 
   f.saved_recipes = await insertRow(client, "saved_recipes", {
     id: randomUUID(), user_id: userId, name: "AETHR staging recipe " + suffix,
     ingredients: [{ name: "Synthetic ingredient", grams: 1 }],
   });
-  registerCleanup(cleanups, client, "saved_recipes", "id", f.saved_recipes);
+  registerCleanup(cleanups, client, "saved_recipes", "id", f.saved_recipes, fallbackClient);
 
   f.wellness_logs = await insertRow(client, "wellness_logs", {
-    id: randomUUID(), user_id: userId, log_date: await uniqueWellnessDate(client, userId),
+    id: randomUUID(), user_id: userId, log_date: await uniqueWellnessDate(client, userId, fallbackClient, otherUserId),
     notes: "Synthetic Phase 21C fixture",
   });
-  registerCleanup(cleanups, client, "wellness_logs", "id", f.wellness_logs);
+  registerCleanup(cleanups, client, "wellness_logs", "id", f.wellness_logs, fallbackClient);
 
   f.profiles = await selectOwn(client, "profiles", "id", userId, "id,display_name");
   f.reminder_preferences = await selectOwn(
@@ -328,6 +339,24 @@ async function verifySpoofedInserts(clientA, clientB, idA, idB, a, b) {
   }, "activity_route_points parent-activity ownership", clientA);
 }
 
+
+async function deleteOwnerRow(client, table, key, id) {
+  const response = await client.from(table).delete().eq(key, id).select(key).maybeSingle();
+  assertSingleRow(response, table + " owner DELETE");
+}
+
+async function verifyOwnerDeletes(clientA, clientB, a, b) {
+  const deleteOrder = [
+    "wellness_logs", "saved_recipes", "saved_foods", "activity_route_points",
+    "activities", "workout_sets", "workout_sessions", "workout_template_exercises",
+    "workout_templates", "exercises", "meal_entries",
+  ];
+  for (const table of deleteOrder) {
+    await deleteOwnerRow(clientA, table, "id", a[table]);
+    await deleteOwnerRow(clientB, table, "id", b[table]);
+  }
+}
+
 async function main() {
   const config = readStagingConfig(process.env);
   const clientA = createSupabase(config);
@@ -343,10 +372,8 @@ async function main() {
     if (idA === idB) throw Error("Two distinct staging-only test accounts are required");
 
     console.log("AETHR Phase 21C: authenticated public-key Data API write checks");
-    const [a, b] = await Promise.all([
-      createFixtures(clientA, idA, "A", cleanups),
-      createFixtures(clientB, idB, "B", cleanups),
-    ]);
+    const a = await createFixtures(clientA, idA, "A", cleanups, clientB, idB);
+    const b = await createFixtures(clientB, idB, "B", cleanups, clientA, idA);
 
     await verifyOwnerUpdates(clientA, idA, a, cleanups);
     console.log("PASS: permitted owner updates succeed; intentionally unavailable updates remain blocked");
@@ -360,7 +387,8 @@ async function main() {
     await verifySpoofedInserts(clientA, clientB, idA, idB, a, b);
     console.log("PASS: forged owner IDs and foreign-parent references rejected");
 
-    console.log("PASS: owner INSERTs succeeded for all writable test tables");
+    await verifyOwnerDeletes(clientA, clientB, a, b);
+    console.log("PASS: owners can delete their own synthetic records; account/profile rows are preserved");
   } catch (error) {
     failure = error instanceof Error ? error.message : "unknown staging write-test failure";
   } finally {
