@@ -148,8 +148,8 @@ The manual workflow now runs `npm run verify:staging:writes` after the read-only
 
 The write verifier creates unique synthetic records through the authenticated Data API for both accounts, then checks:
 
-- Owner INSERT succeeds for writable tables.
-- Cross-account INSERTs with forged owner IDs return PostgreSQL RLS error `42501`.
+- Owner INSERT succeeds for 11 synthetic-record tables: meal entries, exercises, workout templates and their exercise links, workout sessions and sets, activities and GPS points, saved foods, saved recipes, and wellness logs.
+- Cross-account INSERTs with forged owner IDs return PostgreSQL RLS error `42501`. Direct `user_id` spoofing is tested separately from the parent-reference checks for workout sets and GPS points.
 - Child records cannot reference another account's workout template, private exercise, workout session or GPS activity.
 - Owners can UPDATE tables that currently have UPDATE policies.
 - Tables without an UPDATE policy remain non-updatable even by their owner.
@@ -159,7 +159,7 @@ The write verifier creates unique synthetic records through the authenticated Da
 
 The current schema intentionally has no UPDATE policy for `workout_template_exercises`, `workout_sets`, `activity_route_points`, `saved_foods` or `saved_recipes`; the test confirms those owner updates remain blocked. Profile creation is handled by the Auth signup trigger, so the script verifies profile ownership and updates the synthetic test profile instead of trying to create a duplicate. It also temporarily changes Account A's profile display name and reminder preferences, then restores their original values in the cleanup path.
 
-The script does not delete Auth users, existing profiles or existing reminder-preference rows. It removes the temporary application records it creates and fails if cleanup requests return database errors. If a workflow is forcibly cancelled, inspect the two staging accounts' profile/reminder settings and synthetic records before rerunning.
+The script does not create or delete Auth users, existing profiles or existing reminder-preference rows. Profile creation is Auth-trigger-managed, and each configured test account already has a reminder-preference row, so those two tables are checked through owner updates and cross-account access rather than recreated. It removes the temporary application records it creates and fails if cleanup requests return database errors. If a workflow is forcibly cancelled, inspect the two staging accounts' profile/reminder settings and synthetic records before rerunning.
 
 Run only with two accounts confirmed to be disposable staging-only accounts. Never run against production or accounts containing real personal data.
 
