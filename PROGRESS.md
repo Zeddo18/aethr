@@ -47,6 +47,16 @@ Updated November 28, 2026. This file summarizes verified repository and staging 
 
 ## Phase 21 — real Auth/Data API integration (in progress)
 
+### Phase 21 — protected staging preflight code (merged)
+
+- PR #21 merged to main as `563c5acffd4ec563b1abc04617aadf5f8307d0d9`.
+- GitHub Actions now passes the project-scoped Vercel automation bypass secret as the `x-vercel-protection-bypass` header to the validated staging origin for GET-only app checks. The token is not placed in URLs or logs.
+- Vercel SSO protection remains enabled; no deployment protection settings were weakened.
+- Regression tests cover header-only token delivery, normal query strings, missing token behavior and malformed header values.
+- PR CI passed: SQL policy tests, dependency audits, 82 unit tests, TypeScript, production build and mobile/server smoke checks.
+- The post-merge main deployment on the dedicated staging Vercel project reached `READY`.
+- This is implementation readiness only. The Vercel token and four disposable-account GitHub secrets still need to be configured by the project owner, and two disposable accounts plus synthetic fixtures across all 13 tables are still required before real Auth/Data API verification.
+
 ### Latest read-only staging check
 - `auth.users`: 1 account; 1 email-confirmed account; 0 accounts with a recorded successful sign-in.
 - `public.profiles`: 1 profile.
